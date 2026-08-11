@@ -1,0 +1,5 @@
+sample_id,condition,fastq_1,fastq_2
+control_rep1,control,data/raw/fastq/SRR40038349_1.fastq.gz,data/raw/fastq/SRR40038349_2.fastq.gz
+control_rep2,control,data/raw/fastq/SRR40038350_1.fastq.gz,data/raw/fastq/SRR40038350_2.fastq.gz
+pfos50_rep1,pfos50,data/raw/fastq/SRR40038343_1.fastq.gz,data/raw/fastq/SRR40038343_2.fastq.gz
+pfos50_rep2,pfos50,data/raw/fastq/SRR40038344_1.fastq.gz,data/raw/fastq/SRR40038344_2.fastq.gz
