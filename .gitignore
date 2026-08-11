@@ -45,3 +45,4 @@ venv/
 # Generated reports
 *.html
 *.pdfdata/reference/tx2gene.tsv
+data/reference/tx2gene.tsv
