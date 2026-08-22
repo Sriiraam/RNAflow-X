@@ -1,3 +1,4 @@
+from utils.database import get_gsea
 import streamlit as st
 import pandas as pd
 from pathlib import Path
@@ -107,11 +108,15 @@ st.markdown("""
 # ============================================================
 # LOAD DATA
 # ============================================================
-if not GSEA_FILE.exists():
-    st.error(f"GSEA file not found: {GSEA_FILE}")
+try:
+    gsea = get_gsea()
+except Exception as e:
+    st.error(f"Unable to load GSEA results from SQLite: {e}")
     st.stop()
 
-gsea = pd.read_csv(GSEA_FILE)
+if gsea.empty:
+    st.warning("No GSEA results are available in the RNAFlowX database.")
+    st.stop()
 
 required = {
     "ID",

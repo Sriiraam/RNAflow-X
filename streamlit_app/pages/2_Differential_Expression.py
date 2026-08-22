@@ -1,3 +1,7 @@
+from utils.database import (
+    get_differential_expression,
+    get_significant_genes,
+)
 import streamlit as st
 import pandas as pd
 from pathlib import Path
@@ -208,11 +212,8 @@ if not DE_FILE.exists():
     )
     st.stop()
 
-deg = pd.read_csv(DE_FILE, index_col=0)
+deg = get_differential_expression()
 
-# Convert Ensembl row names into a real column
-deg.index.name = "Gene"
-deg = deg.reset_index()
 
 required_columns = {
     "Gene",

@@ -1,3 +1,4 @@
+from utils.database import get_qc_metrics
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -202,16 +203,21 @@ st.write("")
 st.markdown('<div class="section-title">🧬 MultiQC Module Summary</div>',
             unsafe_allow_html=True)
 
+qc_raw = get_qc_metrics()
+
 status = pd.DataFrame({
-    "Module":[
-        "Per Base Quality",
-        "GC Content",
-        "Adapter Content",
-        "N Content",
-        "Sequence Quality",
-        "Length Distribution"
+    "Module": [
+        "FastQC",
+        "FastP",
+        "Salmon",
+        "MultiQC"
     ],
-    "Status":["✓ PASS"]*6
+    "Status": [
+        "Available",
+        "Available",
+        "Available",
+        "Available"
+    ]
 })
 
 styled_status = (

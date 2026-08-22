@@ -59,3 +59,13 @@ _freeze/
 
 # Local installer
 quarto-*.deb
+
+# RNAFlowX generated database
+database/*.db
+database/*.db-journal
+database/*.db-wal
+database/*.db-shm
+
+# Python cache
+__pycache__/
+*.py[cod]

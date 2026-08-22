@@ -1,3 +1,4 @@
+from utils.database import get_go, get_kegg
 import streamlit as st
 import pandas as pd
 from pathlib import Path
@@ -136,30 +137,14 @@ def prepare_table(df):
 
 # ============================================================
 # LOAD DEFAULT DATA
-# ============================================================
-go_bp_all = load_csv(
-    GO_DIR / "BP" / "all_significant.csv"
-)
+# ===========================================================
+go_bp_all = get_go("BP", "all")
+go_bp_up = get_go("BP", "up")
+go_bp_down = get_go("BP", "down")
 
-go_bp_up = load_csv(
-    GO_DIR / "BP" / "upregulated.csv"
-)
-
-go_bp_down = load_csv(
-    GO_DIR / "BP" / "downregulated.csv"
-)
-
-kegg_all = load_csv(
-    KEGG_DIR / "all_significant.csv"
-)
-
-kegg_up = load_csv(
-    KEGG_DIR / "upregulated.csv"
-)
-
-kegg_down = load_csv(
-    KEGG_DIR / "downregulated.csv"
-)
+kegg_all = get_kegg("all")
+kegg_up = get_kegg("up")
+kegg_down = get_kegg("down")
 
 # ============================================================
 # HERO
@@ -264,20 +249,18 @@ with tab_go:
     }
 
     regulation_map = {
-        "All Significant": "all_significant.csv",
-        "Upregulated": "upregulated.csv",
-        "Downregulated": "downregulated.csv"
+        "All Significant": "all",
+        "Upregulated": "up",
+        "Downregulated": "down"
     }
 
     go_code = go_map[go_type]
 
-    go_file = (
-        GO_DIR
-        / go_code
-        / regulation_map[regulation]
+    go_df = get_go(
+        go_code,
+        regulation_map[regulation]
     )
 
-    go_df = load_csv(go_file)
 
     if go_df.empty:
         st.warning("No enrichment results available for this selection.")
@@ -345,12 +328,12 @@ with tab_kegg:
     )
 
     kegg_map = {
-        "All Significant": KEGG_DIR / "all_significant.csv",
-        "Upregulated": KEGG_DIR / "upregulated.csv",
-        "Downregulated": KEGG_DIR / "downregulated.csv"
+        "All Significant": "all",
+        "Upregulated": "up",
+        "Downregulated": "down"
     }
 
-    kegg_df = load_csv(
+    kegg_df = get_kegg(
         kegg_map[kegg_regulation]
     )
 
