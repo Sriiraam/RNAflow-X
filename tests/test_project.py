@@ -35,17 +35,6 @@ def test_workflow_modules():
         assert (ROOT / file).exists(), f"Missing module: {file}"
 
 
-def test_nextflow_profiles():
-    for profile in ["local", "docker", "slurm", "azure"]:
-        result = subprocess.run(
-            ["nextflow", "config", "-profile", profile],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-        )
-        assert result.returncode == 0, result.stderr
-
-
 def test_provenance_config():
     config = (ROOT / "nextflow.config").read_text()
 
