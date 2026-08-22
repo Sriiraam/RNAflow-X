@@ -1,0 +1,98 @@
+<!--
+  ~ Copyright 2013-2024, Seqera Labs
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<html>
+<head>
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+</head>
+<body>
+<pre class="mermaid" style="text-align: center;">
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#B6ECE2',
+      'primaryTextColor': '#160F26',
+      'primaryBorderColor': '#065647',
+      'lineColor': '#545555',
+      'clusterBkg': '#BABCBD22',
+      'clusterBorder': '#DDDEDE',
+      'fontFamily': 'arial'
+    }
+  }
+}%%
+flowchart TB
+    subgraph " "
+    v0["Channel.fromPath"]
+    v8["salmon_index"]
+    v12["tx2gene"]
+    v13["metadata"]
+    v16["metadata"]
+    end
+    subgraph "RNAFLOWX [RNAFLOWX]"
+    v3(["FASTQC_RAW"])
+    v5(["FASTP"])
+    v6(["FASTQC_TRIMMED"])
+    v9(["SALMON_QUANT"])
+    v14(["TXIMPORT"])
+    v17(["DESEQ2"])
+    v31(["MULTIQC"])
+    v10(( ))
+    v21(( ))
+    end
+    subgraph " "
+    v4["raw_qc_html"]
+    v7["trimmed_qc_html"]
+    v15["tximport_summary"]
+    v18["deseq2_versions"]
+    v19["deseq2_results"]
+    v32["multiqc_versions"]
+    v33["multiqc_data"]
+    v34["multiqc_report"]
+    end
+    v1(( ))
+    v0 --> v1
+    v1 --> v3
+    v3 --> v4
+    v3 --> v21
+    v1 --> v5
+    v5 --> v6
+    v5 --> v9
+    v5 --> v21
+    v6 --> v7
+    v6 --> v21
+    v8 --> v9
+    v9 --> v10
+    v9 --> v21
+    v12 --> v14
+    v13 --> v14
+    v10 --> v14
+    v14 --> v17
+    v14 --> v15
+    v16 --> v17
+    v17 --> v19
+    v17 --> v18
+    v21 --> v31
+    v31 --> v34
+    v31 --> v33
+    v31 --> v32
+
+</pre>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, maxTextSize: Number.MAX_SAFE_INTEGER, maxEdges: Number.MAX_SAFE_INTEGER });
+</script>
+</body>
+</html>

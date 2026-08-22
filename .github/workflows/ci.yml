@@ -75,6 +75,9 @@ jobs:
       - name: Validate Docker configuration
         run: nextflow config -profile docker > /dev/null
 
+      - name: Validate SLURM configuration
+        run: nextflow config -profile slurm > /dev/null
+
       - name: Validate Azure configuration
         run: nextflow config -profile azure > /dev/null
 

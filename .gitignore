@@ -44,14 +44,13 @@ venv/
 
 # Generated reports
 *.html
-*.pdfdata/reference/tx2gene.tsv
+*.pdf
 data/reference/tx2gene.tsv
 
 /.quarto/
 **/*.quarto_ipynb
 
 # Python cache
-__pycache__/
 *.pyc
 
 # Quarto generated cache
@@ -67,9 +66,13 @@ database/*.db-wal
 database/*.db-shm
 
 # Python cache
-__pycache__/
-*.py[cod]
 
 # Salmon reference indexes
-data/reference/salmon_index/
 data/reference/salmon_index_v1_backup/
+
+# Keep benchmark provenance reports
+!benchmark/**/*.html
+
+# Benchmark runtime directories
+work_benchmark/
+results_benchmark/
