@@ -69,3 +69,7 @@ database/*.db-shm
 # Python cache
 __pycache__/
 *.py[cod]
+
+# Salmon reference indexes
+data/reference/salmon_index/
+data/reference/salmon_index_v1_backup/

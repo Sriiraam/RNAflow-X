@@ -1,0 +1,14 @@
+.git
+.venv
+work
+results
+database
+_freeze
+__pycache__
+*.pyc
+*.deb
+docs/images
+reports/*.html
+data/raw
+data/fastq
+data/reference/salmon_index
