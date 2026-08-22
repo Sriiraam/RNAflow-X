@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use RNAFlowX, please cite this software."
+title: "RNAFlowX"
+type: software
+version: 1.0.0
+authors:
+  - family-names: "B"
+    given-names: "Sriram"
+repository-code: "https://github.com/Sriiraam/RNAflow-X"
+license: "MIT"
+keywords:
+  - bioinformatics
+  - RNA-seq
+  - Nextflow
+  - DESeq2
+  - Salmon
+  - reproducible workflows

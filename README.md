@@ -403,6 +403,7 @@ The CI pipeline performs three primary validation jobs:
 - Nextflow installation
 - Local configuration validation
 - Docker configuration validation
+- SLURM configuration validation
 - Azure configuration validation
 - Workflow DAG preview validation
 
@@ -433,7 +434,7 @@ Current tests validate:
 Current test result:
 
 ```text
-4 passed
+3 passed
 ```
 
 ---
