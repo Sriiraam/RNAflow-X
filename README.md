@@ -59,38 +59,6 @@ GO, KEGG, and GSEA are currently implemented through the downstream R analysis l
   <img src="docs/images/architecture.png" alt="RNAFlowX workflow architecture" width="760">
 </p>
 
-### Interactive Dashboard
-
-#### Project Overview
-
-<p align="center">
-  <img src="docs/images/home/d1.jpeg" alt="RNAFlowX project overview" width="900">
-</p>
-
-#### Quality Control
-
-<p align="center">
-  <img src="docs/images/qc/qc1.jpeg" alt="RNAFlowX quality control" width="900">
-</p>
-
-#### Differential Expression
-
-<p align="center">
-  <img src="docs/images/de/de1.jpeg" alt="RNAFlowX differential expression" width="900">
-</p>
-
-#### Functional Enrichment
-
-<p align="center">
-  <img src="docs/images/enrichment/e1.jpeg" alt="RNAFlowX functional enrichment" width="900">
-</p>
-
-#### GSEA
-
-<p align="center">
-  <img src="docs/images/gsea/g1.jpeg" alt="RNAFlowX GSEA" width="900">
-</p>
-
 ---
 
 ## Key Features
