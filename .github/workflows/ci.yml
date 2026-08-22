@@ -70,7 +70,9 @@ jobs:
         run: nextflow config -profile docker > /dev/null
 
       - name: Validate workflow DAG
-        run: nextflow run main.nf -profile local -preview
+        run: |
+          mkdir -p data/reference/salmon_index
+          nextflow run main.nf -profile local -preview
 
 
   # ==========================================================
