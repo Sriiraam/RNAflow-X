@@ -1,102 +1,111 @@
 # RNAFlowX
 
-## Reproducible Bulk RNA-seq Analysis & Engineering Platform
+## Reproducible Bulk RNA-seq Analysis & Workflow Engineering Platform
 
-RNAFlowX is a modular bulk RNA-sequencing analysis platform built with **Nextflow DSL2**. It combines reproducible workflow orchestration, sequencing quality control, transcript quantification, differential-expression analysis, functional enrichment, scientific reporting, and an interactive Streamlit dashboard.
+RNAFlowX is a modular bulk RNA-sequencing analysis platform built with **Nextflow DSL2**.
 
-The project demonstrates both **bioinformatics analysis** and **production-oriented workflow engineering**, rather than functioning as a single-use RNA-seq script.
+It combines bioinformatics analysis with reproducible workflow engineering, containerization, automated testing, CI/CD, execution monitoring, benchmarking, scientific reporting, and an interactive Streamlit dashboard.
 
 ---
 
 ## Overview
 
-RNAFlowX processes paired-end RNA-seq data through quality control, preprocessing, transcript quantification, gene-level aggregation, differential-expression analysis, reporting, downstream pathway analysis, and interactive visualization.
-
-The current implementation contains two connected analytical layers.
-
-### Automated Nextflow Workflow
+RNAFlowX processes paired-end bulk RNA-seq data through:
 
 ```text
 Paired-end FASTQ
        │
        ▼
-    FastQC
+   FastQC (Raw)
        │
        ▼
      FastP
        │
        ▼
-FastQC (Trimmed)
+ FastQC (Trimmed)
        │
        ▼
-    Salmon
+     Salmon
        │
        ▼
-   tximport
+    tximport
        │
        ▼
-    DESeq2
+     DESeq2
        │
        ├──────────────► MultiQC
        │
        ▼
-Differential Expression Results
+Differential Expression
+       │
+       ▼
+ GO / KEGG / GSEA
+       │
+       ▼
+Reports + SQLite + Streamlit Dashboard
 ```
 
-### Downstream Analysis & Presentation
+The core sequencing workflow is orchestrated with Nextflow DSL2.
 
-```text
-DESeq2 Results
-      │
-      ├──► GO Enrichment
-      ├──► KEGG Enrichment
-      └──► GSEA
-              │
-              ▼
-       Scientific Reports
-              │
-              ▼
-       Streamlit Dashboard
-```
-
-> **Current architecture note:** GO, KEGG, and GSEA are implemented through the downstream R analysis layer. They are not yet orchestrated as native Nextflow processes.
+GO, KEGG, and GSEA are currently implemented through the downstream R analysis layer and are not yet native Nextflow processes.
 
 ---
 
 ## Key Features
 
-- Modular **Nextflow DSL2** workflow architecture
-- Raw and post-trimming **FastQC**
-- Adapter trimming and quality filtering with **FastP**
-- Alignment-free transcript quantification with **Salmon**
-- Transcript-to-gene aggregation using **tximport**
-- Differential-expression analysis with **DESeq2**
-- PCA, MA, and volcano visualizations
-- GO Biological Process, Molecular Function, and Cellular Component enrichment
+### Bioinformatics
+
+- Raw-read FastQC
+- FastP adapter trimming and quality filtering
+- Post-trimming FastQC
+- Salmon transcript quantification
+- tximport transcript-to-gene aggregation
+- DESeq2 differential-expression analysis
+- PCA visualization
+- MA plot
+- Volcano plot
+- GO enrichment
 - KEGG pathway enrichment
-- Gene Set Enrichment Analysis (**GSEA**)
-- Unified **MultiQC** quality reporting
-- Interactive multi-page **Streamlit dashboard**
-- Quarto and R Markdown scientific reporting
+- Gene Set Enrichment Analysis (GSEA)
+- MultiQC reporting
+
+### Workflow Engineering
+
+- Nextflow DSL2
+- Modular processes and workflows
 - Local execution profile
-- Docker configuration layer
-- Version-controlled workflow configuration
-- Reference-data checksum tracking
-- Structured engineering documentation
+- Docker execution profile
+- SLURM/HPC-ready profile
+- Azure Batch-ready configuration
+- Kubernetes container validation
+- GitHub Actions CI/CD
+- Automated pytest validation
+- Execution tracing and monitoring
+- Reproducible benchmarking
+- Environment provenance capture
+- Nextflow caching and resume support
+
+### Data & Presentation
+
+- SQLite analytical data layer
+- Multi-page Streamlit dashboard
+- Quarto reporting
+- R Markdown reporting
+- Machine-readable CSV outputs
 
 ---
 
 ## Experimental Design
 
-RNAFlowX currently uses a deliberately constrained public human bulk RNA-seq dataset so the complete workflow can be executed on modest local hardware.
+RNAFlowX uses a deliberately constrained public human bulk RNA-seq dataset to support complete execution on modest local hardware.
 
 | Property | Value |
 |---|---|
-| GEO Series | **GSE342612** |
-| BioProject | **PRJNA1508658** |
+| GEO Series | GSE342612 |
+| BioProject | PRJNA1508658 |
 | Organism | *Homo sapiens* |
 | Cell Model | HMC3 human microglial cells |
-| Sequencing Platform | Illumina NextSeq 550 |
+| Platform | Illumina NextSeq 550 |
 | Library Layout | Paired-end |
 | Assay | RNA-seq |
 | Comparison | Vehicle control vs 50 µM PFOS |
@@ -114,28 +123,33 @@ RNAFlowX currently uses a deliberately constrained public human bulk RNA-seq dat
 
 Total compressed sequencing input is approximately **308 MB**.
 
-The dataset size was intentionally constrained to support complete local execution without depending on paid cloud infrastructure.
-
-Detailed dataset documentation is available in [`docs/dataset.md`](docs/dataset.md).
+See [`docs/dataset.md`](docs/dataset.md) for complete dataset documentation.
 
 ---
 
 ## Technology Stack
 
-| Layer | Technologies |
+| Layer | Technology |
 |---|---|
-| Workflow Orchestration | Nextflow DSL2 |
-| Quality Control | FastQC, MultiQC |
+| Workflow orchestration | Nextflow DSL2 |
+| Quality control | FastQC, MultiQC |
 | Preprocessing | FastP |
 | Quantification | Salmon |
-| Count Aggregation | tximport |
-| Differential Expression | DESeq2 |
-| Functional Analysis | clusterProfiler, GO, KEGG, GSEA |
-| Statistical Programming | R |
-| Dashboard | Streamlit, Pandas, Plotly |
-| Scientific Reporting | Quarto, R Markdown |
-| Version Control | Git / GitHub |
-| Container Configuration | Docker |
+| Gene aggregation | tximport |
+| Differential expression | DESeq2 |
+| Functional analysis | clusterProfiler, GO, KEGG, GSEA |
+| Statistical programming | R |
+| Data processing | Python, Pandas |
+| Analytical database | SQLite |
+| Dashboard | Streamlit, Plotly |
+| Scientific reporting | Quarto, R Markdown |
+| Containers | Docker |
+| HPC configuration | SLURM |
+| Cloud-ready configuration | Azure Batch |
+| Container orchestration demo | Kubernetes / kind |
+| CI/CD | GitHub Actions |
+| Testing | pytest |
+| Version control | Git / GitHub |
 
 ---
 
@@ -155,17 +169,11 @@ RNAFlowX/
 │
 ├── modules/
 │   ├── qc/
-│   │   └── fastqc.nf
 │   ├── preprocessing/
-│   │   └── fastp.nf
 │   ├── quantification/
-│   │   └── salmon.nf
 │   ├── counting/
-│   │   └── tximport.nf
 │   ├── differential_expression/
-│   │   └── deseq2.nf
 │   └── reporting/
-│       └── multiqc.nf
 │
 ├── bin/
 │   ├── run_tximport.R
@@ -176,97 +184,94 @@ RNAFlowX/
 │   ├── params.config
 │   ├── base.config
 │   ├── local.config
-│   └── docker.config
+│   ├── docker.config
+│   ├── slurm.config
+│   └── azure.config
 │
-├── assets/
-│   ├── samplesheet.csv
-│   ├── logo.svg
-│   └── hero_dna.svg
+├── containers/
+│   └── Dockerfile
 │
-├── data/
-│   ├── metadata.csv
-│   └── reference/
+├── kubernetes/
+│   └── rnaflowx-demo.yaml
+│
+├── scripts/
+│   ├── build_database.py
+│   ├── benchmark.sh
+│   └── summarize_benchmark.py
+│
+├── benchmark/
+│   ├── environment/
+│   ├── runs/
+│   └── summaries/
 │
 ├── streamlit_app/
 │   ├── app.py
 │   ├── pages/
-│   │   ├── 1_Quality_Control.py
-│   │   ├── 2_Differential_Expression.py
-│   │   ├── 3_Functional_Enrichment.py
-│   │   ├── 4_GSEA.py
-│   │   └── 5_Downloads.py
+│   ├── components/
+│   ├── utils/
 │   └── assets/
 │
 ├── reports/
-│   ├── RNAFlowX_Final_Report.Rmd
-│   ├── RNAFlowX_Publication.qmd
-│   └── RNAFlowX_Report.qmd
 │
 ├── docs/
-│   ├── dataset.md
-│   ├── methodology.md
-│   ├── reference.md
-│   ├── reproducibility.md
-│   ├── benchmarking.md
-│   ├── frozen_decisions.md
-│   └── project_plan.md
 │
 ├── tests/
+│   └── test_project.py
+│
+├── assets/
+│   └── samplesheet.csv
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
 ├── LICENSE
 └── CITATION.cff
 ```
 
-The separation between orchestration, analytical processes, statistical scripts, configuration, reporting, and visualization is intentional. This keeps the workflow modular and allows individual components to evolve independently.
-
 ---
 
-## Workflow Architecture
+## Workflow
 
 ### 1. Input
 
-RNAFlowX consumes a sample manifest describing paired-end FASTQ files.
-
-Default manifest:
+RNAFlowX reads paired-end FASTQ information from:
 
 ```text
 assets/samplesheet.csv
 ```
 
-Experimental metadata are maintained separately:
+Experimental metadata are maintained separately in:
 
 ```text
 data/metadata.csv
 ```
 
-This separates sequencing-file discovery from experimental-design information.
+### 2. Raw Quality Control
 
-### 2. Quality Control
-
-Raw sequencing reads are evaluated using **FastQC**.
-
-After preprocessing, FastQC is executed again on trimmed reads to provide before/after quality assessment.
+FastQC evaluates sequencing quality before preprocessing.
 
 ### 3. Preprocessing
 
-**FastP** performs adapter removal and read-quality filtering.
+FastP performs adapter removal and quality filtering.
 
-FastP HTML and JSON reports are collected for downstream reporting.
+### 4. Post-trimming Quality Control
 
-### 4. Transcript Quantification
+FastQC evaluates the cleaned reads after preprocessing.
 
-Filtered reads are quantified against a pre-built transcriptome index using **Salmon**.
+### 5. Transcript Quantification
 
-This provides alignment-free transcript abundance estimation.
+Salmon performs alignment-free transcript abundance estimation using a pre-built transcriptome index.
 
-### 5. Gene-Level Aggregation
+### 6. Gene-Level Aggregation
 
-**tximport** imports Salmon transcript abundances and aggregates them to gene-level counts using the configured transcript-to-gene mapping.
+tximport converts transcript-level Salmon estimates into gene-level counts.
 
-### 6. Differential Expression
+### 7. Differential Expression
 
-**DESeq2** performs differential-expression analysis using the sample metadata and generated count matrix.
+DESeq2 performs differential-expression analysis.
 
-Outputs include:
+Generated outputs include:
 
 - complete differential-expression results
 - significant-gene results
@@ -274,112 +279,342 @@ Outputs include:
 - PCA
 - MA plot
 - volcano plot
-- serialized DESeq2 object
+- DESeq2 object
 - analysis summary
 
-### 7. Unified QC Reporting
+### 8. Quality Reporting
 
-FastQC, FastP, and Salmon reporting artifacts are collected by **MultiQC** into a consolidated HTML quality report.
+MultiQC consolidates QC information from the workflow into a unified report.
 
-### 8. Functional Analysis
+### 9. Functional Analysis
 
-DESeq2 results are subsequently processed by the R enrichment layer to generate:
+The downstream R analysis layer performs:
 
 - GO Biological Process
 - GO Molecular Function
 - GO Cellular Component
-- KEGG pathways
+- KEGG enrichment
 - GSEA
 
 ---
 
-## Configuration
+## Configuration Profiles
 
-RNAFlowX separates configuration from workflow implementation.
+RNAFlowX separates execution configuration from workflow logic.
 
-Primary Nextflow configuration:
-
-```text
-nextflow.config
-```
-
-Parameter configuration:
-
-```text
-conf/params.config
-```
-
-Current default parameters include:
-
-```text
-samplesheet  = assets/samplesheet.csv
-salmon_index = data/reference/salmon_index
-tx2gene      = data/reference/tx2gene.tsv
-metadata     = data/metadata.csv
-outdir       = results
-```
-
-Execution-specific configuration is separated into:
-
-```text
-conf/local.config
-conf/docker.config
-```
-
----
-
-## Running RNAFlowX
-
-### Requirements
-
-Core runtime requirements include:
-
-- Linux or WSL2
-- Java
-- Nextflow >= 24.10.0
-- FastQC
-- FastP
-- Salmon
-- MultiQC
-- R
-- DESeq2
-- tximport
-
-Additional R packages are required for GO, KEGG, and GSEA analysis.
-
-### Local Execution
-
-From the repository root:
+### Local
 
 ```bash
 nextflow run main.nf -profile local
 ```
 
-Nextflow loads the project parameters and local execution configuration automatically.
+Designed for direct execution on local Linux/WSL environments.
 
-### Resume an Interrupted Run
-
-Nextflow caching allows previously completed processes to be reused:
+### Docker
 
 ```bash
-nextflow run main.nf -profile local -resume
+nextflow run main.nf -profile docker
 ```
 
-### Docker Profile
+The complete four-sample workflow has been successfully executed and benchmarked using this profile.
 
-A Docker execution profile is defined through:
+### SLURM / HPC
 
 ```text
-conf/docker.config
+conf/slurm.config
 ```
 
-The Docker/container layer remains part of the project's ongoing reproducibility validation and should not yet be interpreted as a fully validated production container deployment.
+Provides a portable SLURM execution configuration.
+
+The configuration has been validated syntactically but has not yet been benchmarked on a real HPC cluster.
+
+### Azure Batch
+
+```text
+conf/azure.config
+```
+
+Provides an Azure Batch-ready Nextflow configuration.
+
+This configuration does **not** provision Azure infrastructure or create cloud resources by itself.
+
+The configuration has been validated locally but has not been executed against a live Azure Batch environment.
+
+---
+
+## Docker
+
+The RNAFlowX container is defined in:
+
+```text
+containers/Dockerfile
+```
+
+The image includes the core software required by the pipeline.
+
+The container was validated through:
+
+- successful Docker build
+- end-to-end Docker workflow execution
+- GitHub Actions Docker build validation
+- local Kubernetes container execution
+
+---
+
+## Kubernetes Validation
+
+RNAFlowX includes a lightweight Kubernetes demonstration:
+
+```text
+kubernetes/rnaflowx-demo.yaml
+```
+
+The RNAFlowX Docker image was loaded into a local **kind** Kubernetes cluster and successfully executed.
+
+Validated software included:
+
+```text
+FastQC
+FastP
+Salmon
+MultiQC
+R
+```
+
+This demonstrates container portability.
+
+It should not be interpreted as a production Kubernetes deployment or large-scale Kubernetes benchmark.
+
+---
+
+## CI/CD
+
+RNAFlowX uses **GitHub Actions** for automated repository validation.
+
+The CI pipeline performs three primary validation jobs:
+
+### Python Validation
+
+- Python source compilation
+- pytest project tests
+
+### Nextflow DSL2 Validation
+
+- Nextflow installation
+- Local configuration validation
+- Docker configuration validation
+- Azure configuration validation
+- Workflow DAG preview validation
+
+### Docker Validation
+
+- Docker Buildx setup
+- RNAFlowX Dockerfile build validation
+
+All three CI validation jobs have been successfully executed.
+
+---
+
+## Automated Testing
+
+Project-level tests are located in:
+
+```text
+tests/test_project.py
+```
+
+Current tests validate:
+
+- required project files
+- workflow modules
+- Nextflow execution profiles
+- provenance configuration
+
+Current test result:
+
+```text
+4 passed
+```
+
+---
+
+## Execution Monitoring & Provenance
+
+RNAFlowX automatically generates Nextflow execution metadata:
+
+```text
+results/pipeline_info/
+├── execution_report.html
+├── execution_timeline.html
+├── execution_trace.txt
+└── workflow_dag.html
+```
+
+These artifacts provide information about:
+
+- task execution
+- runtime
+- CPU utilization
+- memory utilization
+- workflow structure
+- execution timing
+
+Benchmarking additionally captures:
+
+- operating environment
+- software versions
+- container information
+- system metrics
+- process-level metrics
+
+---
+
+## Performance Benchmark
+
+RNAFlowX was benchmarked using a **fresh Docker execution with zero cached tasks**.
+
+### Benchmark Results
+
+| Metric | Result |
+|---|---:|
+| Samples | 4 paired-end |
+| Compressed input | ~308 MB |
+| Total tasks | 19 |
+| Successful tasks | 19 |
+| Failed tasks | 0 |
+| Cached tasks | 0 |
+| Success rate | 100% |
+| Pipeline runtime | 17m 43s |
+| External wall-clock time | 17m 49.87s |
+| CPU hours | 0.4 |
+| Highest observed task RSS | ~2.5 GB |
+
+### Process Performance
+
+| Process | Runtime | Peak RSS |
+|---|---:|---:|
+| FastQC Raw | 22.7–58.0 s | 203–247 MB |
+| FastP | 20.6–43.5 s | ~1.2 GB |
+| FastQC Trimmed | 19.9–59.8 s | 210–242 MB |
+| Salmon | 2m 10s–6m 49s | 2.4–2.5 GB |
+| tximport | 41.0 s | 558.5 MB |
+| DESeq2 | 17.9 s | 872.4 MB |
+| MultiQC | 10.2 s | 199.2 MB |
+
+Salmon quantification was the main computational bottleneck in the benchmark.
+
+Complete benchmark methodology and measurements are documented in [`docs/benchmarking.md`](docs/benchmarking.md).
+
+---
+
+## Benchmark Artifacts
+
+Benchmark evidence is preserved under:
+
+```text
+benchmark/
+├── environment/
+│   ├── container_info.txt
+│   ├── software_versions.txt
+│   └── system_info.txt
+├── runs/
+│   └── docker_local/
+│       ├── execution_report.html
+│       ├── execution_timeline.html
+│       ├── execution_trace.txt
+│       ├── system_metrics.txt
+│       └── workflow_dag.html
+└── summaries/
+    ├── benchmark_summary.csv
+    └── process_metrics.csv
+```
+
+The benchmark can be reproduced using:
+
+```bash
+NXF_WORK=work_benchmark \
+./scripts/benchmark.sh docker results_benchmark
+```
+
+---
+
+## SQLite Analytical Layer
+
+RNAFlowX provides an SQLite data layer for structured access to analytical results.
+
+Build the database using:
+
+```bash
+python scripts/build_database.py
+```
+
+The database can contain tables for:
+
+- sample metadata
+- QC metrics
+- differential-expression results
+- GO BP/MF/CC results
+- KEGG results
+- GSEA results
+
+The Streamlit application accesses the database through read-only query utilities in:
+
+```text
+streamlit_app/utils/database.py
+```
+
+Generated database files are excluded from Git version control.
+
+---
+
+## Interactive Streamlit Dashboard
+
+RNAFlowX includes a multi-page Streamlit interface for exploring pipeline outputs.
+
+Dashboard areas include:
+
+1. Project overview
+2. Quality control
+3. Differential expression
+4. Functional enrichment
+5. GSEA
+6. Downloads and reports
+
+Run the dashboard with:
+
+```bash
+streamlit run streamlit_app/app.py
+```
+
+The dashboard is a presentation layer over RNAFlowX analytical outputs.
+
+---
+
+## Scientific Reporting
+
+RNAFlowX provides scientific reports using both **Quarto** and **R Markdown**.
+
+Reports integrate:
+
+```text
+Methods
+   │
+Quality Control
+   │
+Differential Expression
+   │
+Functional Enrichment
+   │
+Biological Interpretation
+```
+
+MultiQC separately provides consolidated sequencing QC reporting.
 
 ---
 
 ## Pipeline Outputs
 
-Pipeline outputs are organized under:
+Primary workflow outputs are written under:
 
 ```text
 results/
@@ -393,269 +628,103 @@ results/
 ├── differential_expression/
 ├── enrichment/
 ├── multiqc/
-└── quantification/
+├── quantification/
+└── pipeline_info/
 ```
-
-### Quantification
-
-The quantification layer produces Salmon abundance estimates for each biological sample.
-
-### Count Matrix
-
-tximport generates the gene-level count matrix used by DESeq2.
-
-### Differential Expression
-
-The DESeq2 output directory contains:
-
-```text
-differential_expression.csv
-significant_genes.csv
-normalized_counts.csv
-PCA.png
-MA_plot.png
-volcano_plot.png
-dds.rds
-deseq2_summary.txt
-```
-
-### Functional Enrichment
-
-Functional analysis produces separate results for:
-
-```text
-GO/
-├── BP/
-├── CC/
-└── MF/
-
-KEGG/
-
-GSEA/
-```
-
-GO and KEGG results are additionally separated into:
-
-- all significant genes
-- upregulated genes
-- downregulated genes
 
 ---
 
-## Interactive Streamlit Dashboard
+## Reproducibility
 
-RNAFlowX includes an interactive multi-page Streamlit interface built directly on pipeline-generated outputs.
+RNAFlowX uses several controls to improve computational reproducibility:
 
-### Dashboard Pages
-
-1. **Project Overview** — workflow, experimental design, architecture, and engineering principles.
-2. **Quality Control** — sample-level sequencing quality metrics and FastQC/MultiQC status.
-3. **Differential Expression** — PCA, MA plot, volcano plot, statistics, and DEG tables.
-4. **Functional Enrichment** — GO and KEGG enrichment results.
-5. **GSEA** — ranked gene-set enrichment results and enrichment statistics.
-6. **Downloads & Reports** — access to major analytical outputs and reports.
-
-### Run the Dashboard
-
-From the repository root:
-
-```bash
-streamlit run streamlit_app/app.py
-```
-
-The dashboard is a presentation layer over pipeline-generated outputs rather than a separate analytical workflow.
-
----
-
-## Scientific Reporting
-
-RNAFlowX includes scientific reporting implementations under:
-
-```text
-reports/
-```
-
-The project currently contains both **Quarto** and **R Markdown** reporting approaches.
-
-The reporting layer connects:
-
-```text
-Methods
-   │
-   ▼
-Quality Control
-   │
-   ▼
-Differential Expression
-   │
-   ▼
-Functional Enrichment
-   │
-   ▼
-Biological Interpretation
-```
-
-MultiQC separately provides the unified sequencing-quality report.
-
----
-
-## Reproducibility Strategy
-
-RNAFlowX treats reproducibility as an engineering requirement rather than only a documentation concern.
-
-Current reproducibility controls include:
-
-- fixed dataset selection
+- fixed benchmark dataset
 - documented sample provenance
-- frozen technical decisions
 - explicit sample manifest
 - separate experimental metadata
-- version-controlled Nextflow modules
-- version-controlled R scripts
-- configuration profiles
-- fixed reference resources
+- version-controlled workflow modules
+- version-controlled analytical scripts
+- execution profiles
+- Docker containerization
+- reference-resource documentation
 - reference checksum tracking
 - deterministic output organization
-- software-version reporting
-- Nextflow execution caching
-
-Detailed documentation:
-
-- [Frozen Technical Decisions](docs/frozen_decisions.md)
-- [Dataset Specification](docs/dataset.md)
-- [Methodology](docs/methodology.md)
-- [Reference Resources](docs/reference.md)
-- [Reproducibility](docs/reproducibility.md)
-- [Benchmarking](docs/benchmarking.md)
-
----
-
-## Engineering Principles
-
-### Modularity
-
-Each major analytical stage is isolated into a reusable Nextflow DSL2 module.
-
-### Separation of Concerns
-
-Workflow orchestration, statistical analysis, configuration, scientific reporting, and dashboard presentation remain separate layers.
-
-### Reproducibility
-
-Dataset selection, reference resources, metadata, parameters, software execution, and output organization are explicitly controlled.
-
-### Local-First Development
-
-The benchmark dataset is deliberately constrained so development and validation can occur on modest hardware without requiring paid cloud infrastructure.
-
-### Extensibility
-
-Execution profiles and modular processes provide a foundation for future HPC, container, and infrastructure integration.
-
----
-
-## Implementation Status
-
-### Implemented
-
-- [x] Nextflow DSL2 architecture
-- [x] Modular workflow organization
-- [x] Raw FastQC
-- [x] FastP preprocessing
-- [x] Post-trimming FastQC
-- [x] Salmon transcript quantification
-- [x] tximport gene-level aggregation
-- [x] DESeq2 differential expression
-- [x] PCA visualization
-- [x] MA visualization
-- [x] Volcano visualization
-- [x] MultiQC reporting
-- [x] GO enrichment
-- [x] KEGG enrichment
-- [x] GSEA
-- [x] Quarto / R Markdown reporting
-- [x] Streamlit analytical dashboard
-- [x] Downloadable analytical outputs
-- [x] Local execution profile
-- [x] Dataset and reference documentation
-- [x] Git version control
-
-### Engineering Roadmap
-
-The following capabilities are planned and are **not presented as completed functionality**:
-
-- [ ] Integrate GO / KEGG / GSEA directly into the Nextflow DAG
-- [ ] SQLite analytical data layer
-- [ ] Expanded automated testing
-- [ ] GitHub Actions CI/CD
-- [ ] Fully validated Docker execution
-- [ ] SLURM/HPC execution profile
-- [ ] Cloud-ready infrastructure configuration
-- [ ] Structured logging and observability
-- [ ] Expanded provenance tracking
-- [ ] Kubernetes deployment demonstration
-- [ ] Formal benchmark validation
-- [ ] Production release packaging
+- Nextflow caching
+- execution tracing
+- software-version capture
+- environment provenance
+- automated CI validation
+- automated project tests
+- reproducible benchmark scripts
 
 ---
 
 ## Documentation
 
-Detailed project documentation is maintained separately from the README.
-
 | Document | Purpose |
 |---|---|
 | [`dataset.md`](docs/dataset.md) | Dataset provenance and experimental design |
 | [`methodology.md`](docs/methodology.md) | Analytical methodology |
-| [`reference.md`](docs/reference.md) | Reference-resource specification |
+| [`reference.md`](docs/reference.md) | Reference resources |
 | [`reproducibility.md`](docs/reproducibility.md) | Reproducibility strategy |
-| [`benchmarking.md`](docs/benchmarking.md) | Benchmarking strategy |
+| [`benchmarking.md`](docs/benchmarking.md) | Measured benchmark results |
 | [`frozen_decisions.md`](docs/frozen_decisions.md) | Locked technical decisions |
-| [`project_plan.md`](docs/project_plan.md) | Engineering roadmap |
+| [`project_plan.md`](docs/project_plan.md) | Project engineering plan |
+
+---
+
+## Implementation Status
+
+### Completed
+
+- [x] Nextflow DSL2 architecture
+- [x] Modular workflow organization
+- [x] FastQC
+- [x] FastP
+- [x] Salmon
+- [x] tximport
+- [x] DESeq2
+- [x] MultiQC
+- [x] GO enrichment
+- [x] KEGG enrichment
+- [x] GSEA
+- [x] Scientific reporting
+- [x] Streamlit dashboard
+- [x] SQLite analytical layer
+- [x] Local execution profile
+- [x] Docker containerization
+- [x] End-to-end Docker execution
+- [x] SLURM/HPC configuration
+- [x] Azure Batch-ready configuration
+- [x] Kubernetes container validation
+- [x] GitHub Actions CI/CD
+- [x] Automated pytest validation
+- [x] Execution monitoring
+- [x] Provenance capture
+- [x] Reproducible benchmark framework
+- [x] Fresh Docker benchmark
+
+### Remaining Scope
+
+- [ ] Integrate GO / KEGG / GSEA directly into the Nextflow DAG
+- [ ] Execute and benchmark RNAFlowX on a real SLURM cluster
+- [ ] Execute and benchmark RNAFlowX on live Azure Batch infrastructure
+- [ ] Large-scale dataset benchmarking
+- [ ] Formal production release packaging
 
 ---
 
 ## Scope & Limitations
 
-RNAFlowX is currently an **engineering and bioinformatics portfolio platform**, not a clinical diagnostic workflow.
+RNAFlowX is a **bioinformatics and workflow-engineering project** and is not a clinical diagnostic workflow.
 
-The four-sample dataset was deliberately selected to demonstrate complete end-to-end workflow execution on limited local hardware.
+The four-sample dataset was deliberately selected for reproducible end-to-end execution on modest local hardware.
 
-Because of the small biological sample size, biological findings should be interpreted as workflow-demonstration results rather than definitive experimental conclusions.
+Because of the small biological sample size, biological findings should be treated as workflow-demonstration results rather than definitive experimental conclusions.
+
+SLURM and Azure profiles demonstrate execution portability at the configuration level but have not yet undergone real infrastructure performance benchmarking.
 
 RNAFlowX is not intended for clinical decision-making.
-
----
-
-## Future Architecture
-
-The long-term engineering direction is:
-
-```text
-Input Data
-    │
-    ▼
-Nextflow DSL2
-    │
-    ├── QC
-    ├── Preprocessing
-    ├── Quantification
-    ├── Differential Expression
-    ├── Functional Analysis
-    └── Reporting
-            │
-            ▼
-      Structured Results
-            │
-       ┌────┴────┐
-       ▼         ▼
-    Reports    Data Layer
-                  │
-                  ▼
-             Dashboard
-```
-
-Future infrastructure work will focus on execution portability, automated validation, provenance, observability, and deployment rather than changing the core scientific workflow without justification.
 
 ---
 
@@ -671,11 +740,10 @@ B.Tech Biotechnology
 
 ## License
 
-This project is distributed under the terms defined in [`LICENSE`](LICENSE).
+RNAFlowX is distributed under the terms defined in [`LICENSE`](LICENSE).
 
 ---
 
 ## Citation
 
-Citation metadata for RNAFlowX is provided through [`CITATION.cff`](CITATION.cff).
-
+Citation metadata is available through [`CITATION.cff`](CITATION.cff).
