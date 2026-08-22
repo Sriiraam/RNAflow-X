@@ -69,6 +69,9 @@ jobs:
       - name: Validate Docker configuration
         run: nextflow config -profile docker > /dev/null
 
+      - name: Validate Azure configuration
+        run: nextflow config -profile azure > /dev/null
+
       - name: Validate workflow DAG
         run: |
           mkdir -p data/reference/salmon_index
