@@ -72,6 +72,8 @@ jobs:
       - name: Validate workflow DAG
         run: |
           mkdir -p data/reference/salmon_index
+          touch data/reference/tx2gene.tsv
+          touch data/metadata.csv
           nextflow run main.nf -profile local -preview
 
 
