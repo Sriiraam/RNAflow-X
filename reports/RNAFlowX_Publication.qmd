@@ -50,17 +50,17 @@ RNAFlowX is a reproducible transcriptomic analysis workflow developed for **Bulk
 </div>
 
 <div class="card">
-<h2>430</h2>
+<h2>445</h2>
 <p>Significant DEGs</p>
 </div>
 
 <div class="card">
-<h2>205</h2>
+<h2>210</h2>
 <p>Upregulated</p>
 </div>
 
 <div class="card">
-<h2>225</h2>
+<h2>235</h2>
 <p>Downregulated</p>
 </div>
 
