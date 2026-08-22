@@ -1,0 +1,103 @@
+---
+title: "RNAFlowX"
+subtitle: "A Reproducible Bulk RNA-seq Analysis Pipeline"
+author: "Sriram B"
+date: today
+---
+
+```{r}
+#| include: false
+
+library(knitr)
+library(dplyr)
+library(readr)
+
+knitr::opts_chunk$set(
+  echo=FALSE,
+  warning=FALSE,
+  message=FALSE,
+  fig.align="center",
+  out.width="100%"
+)
+```
+
+<div class="hero">
+
+# RNAFlowX
+
+### A Reproducible Bulk RNA-seq Analysis Pipeline
+
+**Author:** Sriram B
+
+**Date:** 13 August 2026
+
+Built using **Nextflow • R • DESeq2 • clusterProfiler • Quarto**
+
+</div>
+
+## Executive Summary
+
+RNAFlowX is a fully reproducible Bulk RNA-seq workflow that performs quality control, transcript quantification, differential expression analysis, Gene Ontology enrichment, KEGG pathway analysis and Gene Set Enrichment Analysis (GSEA).
+
+<div class="metrics">
+
+<div class="card">
+<h2>10,283</h2>
+<p>DESeq2 Genes</p>
+</div>
+
+<div class="card">
+<h2>430</h2>
+<p>Significant DEGs</p>
+</div>
+
+<div class="card">
+<h2>9,921</h2>
+<p>Mapped Genes</p>
+</div>
+
+<div class="card">
+<h2>205</h2>
+<p>Upregulated</p>
+</div>
+
+<div class="card">
+<h2>225</h2>
+<p>Downregulated</p>
+</div>
+
+<div class="card">
+<h2>9,694</h2>
+<p>GSEA Ranked</p>
+</div>
+
+</div>
+
+::: {.section}
+## 1. Analysis Overview
+
+The analytical workflow implemented in RNAFlowX follows a fully reproducible pipeline:
+
+**FASTQ → QC → Quantification → Count Matrix → DESeq2 → GO / KEGG → GSEA → HTML Report**
+:::
+
+::: {.section}
+## 2. Quality Control
+
+The workflow generates FastQC and MultiQC reports for all sequencing libraries. Quality metrics are consolidated into a single MultiQC report allowing rapid inspection of sequencing quality before downstream analysis.
+:::
+
+::: {.section}
+## 3. Differential Expression
+
+| Metric | Value |
+|---|---:|
+| Total genes | **10,283** |
+| Significant genes | **430** |
+| Upregulated | **205** |
+| Downregulated | **225** |
+
+The differential expression analysis was performed using **DESeq2** with adjusted p-value {'<'} 0.05 and |log₂FC| ≥ 1.
+:::
+
+# PCA, MA plot, Volcano and enrichment sections will be added next.

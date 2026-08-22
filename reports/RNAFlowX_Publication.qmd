@@ -1,0 +1,112 @@
+{`---
+title: ""
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    page-layout: full
+    theme: cosmo
+    css: ../theme.scss
+    embed-resources: true
+
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+\`\`\`{r}
+library(knitr)
+library(dplyr)
+library(kableExtra)
+\`\`\`
+
+<div class="hero">
+
+# RNAFlowX
+
+### A Reproducible Bulk RNA-seq Analysis Pipeline
+
+**Author:** Sriram B
+
+**Version:** 1.0.0
+
+**Generated:** 13 August 2026
+
+*Nextflow • DESeq2 • Salmon • clusterProfiler • Quarto*
+
+</div>
+
+# Executive Summary
+
+RNAFlowX is a reproducible transcriptomic analysis workflow developed for **Bulk RNA sequencing**. The pipeline performs read quality assessment, transcript quantification, differential expression analysis, Gene Ontology enrichment, KEGG pathway discovery and Gene Set Enrichment Analysis (GSEA) within a fully reproducible Nextflow framework.
+
+<div class="metrics">
+
+<div class="card">
+<h2>10,283</h2>
+<p>Total Genes</p>
+</div>
+
+<div class="card">
+<h2>430</h2>
+<p>Significant DEGs</p>
+</div>
+
+<div class="card">
+<h2>205</h2>
+<p>Upregulated</p>
+</div>
+
+<div class="card">
+<h2>225</h2>
+<p>Downregulated</p>
+</div>
+
+<div class="card">
+<h2>9,921</h2>
+<p>Mapped Genes</p>
+</div>
+
+<div class="card">
+<h2>96.5%</h2>
+<p>Annotation Success</p>
+</div>
+
+</div>
+
+::: {.section}
+## Project Overview
+
+**Objective**
+
+Identify transcriptional alterations induced by PFOS exposure using a reproducible RNA-seq workflow.
+
+**Organism:** Homo sapiens
+
+**Quantification:** Salmon
+
+**Differential expression:** DESeq2
+
+**Functional analysis:** GO, KEGG, GSEA
+
+**Report generation:** Quarto HTML
+:::
+
+::: {.section}
+## RNAFlowX Workflow
+
+| Stage | Tool | Output |
+|---|---|---|
+| Quality Control | FastQC + MultiQC | QC metrics |
+| Preprocessing | FastP | Clean FASTQ |
+| Quantification | Salmon | Transcript abundance |
+| Counting | Tximport | Gene count matrix |
+| Differential Expression | DESeq2 | DEG table |
+| Functional Analysis | clusterProfiler | GO / KEGG |
+| Gene Set Analysis | GSEA | Enrichment profiles |
+| Reporting | Quarto | Interactive HTML |
+:::
+
+> **Scientific objective:** This publication summarizes the complete downstream transcriptomic analysis while preserving reproducibility and minimizing command-line content.`}

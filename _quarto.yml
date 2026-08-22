@@ -1,0 +1,24 @@
+project:
+  type: default
+
+execute:
+  echo: false
+  warning: false
+  message: false
+  freeze: auto
+
+format:
+  html:
+    theme: cosmo
+    css: theme.scss
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    smooth-scroll: true
+    page-layout: full
+    embed-resources: true
+    code-fold: false
+    fig-align: center
+    fig-format: png
+
+editor: visual

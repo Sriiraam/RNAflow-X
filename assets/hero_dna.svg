@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500">
+  <defs>
+    <linearGradient id="dna" x1="0" x2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="500" fill="#0f172a"/>
+
+  <g stroke="url(#dna)" stroke-width="4" fill="none" opacity="0.9">
+    <path d="M220 20 C320 120,320 220,220 320 S120 480,220 500"/>
+    <path d="M300 20 C200 120,200 220,300 320 S400 480,300 500"/>
+
+    <path d="M700 20 C800 120,800 220,700 320 S600 480,700 500"/>
+    <path d="M780 20 C680 120,680 220,780 320 S880 480,780 500"/>
+  </g>
+
+  <g stroke="#93c5fd" stroke-width="2" opacity="0.7">
+    <line x1="225" y1="70" x2="295" y2="70"/>
+    <line x1="225" y1="130" x2="295" y2="130"/>
+    <line x1="225" y1="190" x2="295" y2="190"/>
+    <line x1="225" y1="250" x2="295" y2="250"/>
+    <line x1="225" y1="310" x2="295" y2="310"/>
+    <line x1="225" y1="370" x2="295" y2="370"/>
+
+    <line x1="705" y1="70" x2="775" y2="70"/>
+    <line x1="705" y1="130" x2="775" y2="130"/>
+    <line x1="705" y1="190" x2="775" y2="190"/>
+    <line x1="705" y1="250" x2="775" y2="250"/>
+    <line x1="705" y1="310" x2="775" y2="310"/>
+    <line x1="705" y1="370" x2="775" y2="370"/>
+  </g>
+
+  <g fill="#67e8f9" opacity="0.5">
+    <circle cx="1020" cy="90" r="4"/>
+    <circle cx="980" cy="180" r="3"/>
+    <circle cx="1040" cy="260" r="5"/>
+    <circle cx="960" cy="340" r="3"/>
+    <circle cx="1000" cy="420" r="4"/>
+  </g>
+</svg>

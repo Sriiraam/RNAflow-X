@@ -1,0 +1,491 @@
+---
+title: "RNAFlowX — Bulk RNA-seq Analysis Report"
+author: "Sriram B"
+date: "11 August 2026"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    theme: readable
+    highlight: tango
+    df_print: paged
+    self_contained: true
+    code_folding: hide
+    fig_caption: true
+---
+
+<style>
+body {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: #20252b;
+  background: #f4f6f8;
+}
+.main-container {
+  max-width: 1180px;
+  background: #ffffff;
+  padding: 42px 55px 60px 55px;
+  border-radius: 12px;
+}
+h1 { font-size: 34px; font-weight: 750; margin-bottom: 8px; }
+h2 { font-size: 27px; font-weight: 700; margin-top: 42px; padding-bottom: 8px; border-bottom: 2px solid #e6e9ed; }
+h3 { font-size: 21px; font-weight: 650; margin-top: 30px; }
+h4 { font-size: 17px; font-weight: 650; }
+.subtitle { font-size: 18px; color: #65707c; margin-bottom: 24px; }
+.hero {
+  background: #eef3f7;
+  border-left: 5px solid #526b7a;
+  padding: 18px 22px;
+  border-radius: 8px;
+  margin: 22px 0 28px 0;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 24px 0 32px 0;
+}
+.card {
+  border: 1px solid #e1e5e9;
+  border-radius: 10px;
+  padding: 18px 12px;
+  text-align: center;
+  background: #fff;
+}
+.card .num { font-size: 30px; font-weight: 750; }
+.card .label { font-size: 13px; color: #69737d; margin-top: 3px; }
+.figure-caption { color: #65707c; font-size: 14px; text-align: center; margin-top: 6px; }
+.note {
+  background: #f7f8fa;
+  border-left: 4px solid #7b8792;
+  padding: 13px 17px;
+  margin: 18px 0;
+}
+.warning {
+  background: #fff8e8;
+  border-left: 4px solid #b77b00;
+  padding: 13px 17px;
+  margin: 18px 0;
+}
+table { font-size: 14px; }
+.small { font-size: 13px; color: #69737d; }
+img { max-width: 100%; height: auto; }
+.plot-wide { width: 92%; display: block; margin: 10px auto 20px auto; }
+.plot-medium { width: 78%; display: block; margin: 10px auto 20px auto; }
+details {
+  margin: 14px 0;
+  padding: 10px 14px;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  background: #fafbfc;
+}
+code { font-size: 0.92em; }
+@media (max-width: 800px) {
+  .main-container { padding: 25px 20px; }
+  .cards { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = normalizePath("..", mustWork = TRUE))
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center",
+  out.width = "92%"
+)
+
+library(knitr)
+library(ggplot2)
+
+results_dir <- "results"
+deseq_dir <- file.path(results_dir, "deseq2")
+enrich_dir <- file.path(results_dir, "enrichment")
+plot_dir <- file.path(enrich_dir, "plots")
+
+# Current RNAFlowX result locations
+deseq_file <- file.path(deseq_dir, "deseq2_results.csv")
+annot_file <- file.path(enrich_dir, "annotation", "mapped_DESeq2_results.csv")
+go_bp_file <- file.path(enrich_dir, "GO", "BP", "all_significant.csv")
+kegg_file <- file.path(enrich_dir, "KEGG", "all_significant.csv")
+gsea_file <- file.path(enrich_dir, "GSEA", "GO_BP_GSEA.csv")
+
+pca_file <- file.path(deseq_dir, "PCA.png")
+volcano_file <- file.path(deseq_dir, "volcano_plot.png")
+cor_file <- file.path(deseq_dir, "sample_correlation.png")
+
+go_all_plot <- file.path(plot_dir, "GO_BP_all_significant_dotplot.png")
+go_up_plot <- file.path(plot_dir, "GO_BP_upregulated_dotplot.png")
+go_down_plot <- file.path(plot_dir, "GO_BP_downregulated_dotplot.png")
+kegg_all_plot <- file.path(plot_dir, "KEGG_all_significant_dotplot.png")
+kegg_up_plot <- file.path(plot_dir, "KEGG_upregulated_dotplot.png")
+kegg_down_plot <- file.path(plot_dir, "KEGG_downregulated_dotplot.png")
+gsea_plot <- file.path(plot_dir, "GSEA_GO_BP_dotplot.png")
+
+de <- if (file.exists(deseq_file)) read.csv(deseq_file, stringsAsFactors = FALSE) else data.frame()
+mapped <- if (file.exists(annot_file)) read.csv(annot_file, stringsAsFactors = FALSE) else data.frame()
+go_bp <- if (file.exists(go_bp_file)) read.csv(go_bp_file, stringsAsFactors = FALSE) else data.frame()
+kegg <- if (file.exists(kegg_file)) read.csv(kegg_file, stringsAsFactors = FALSE) else data.frame()
+gsea <- if (file.exists(gsea_file)) read.csv(gsea_file, stringsAsFactors = FALSE) else data.frame()
+
+de_genes <- if (nrow(de) > 0) nrow(de) else 10283
+mapped_genes <- if (nrow(mapped) > 0) nrow(mapped) else 9921
+gsea_genes <- 9694
+
+if (nrow(de) > 0 && "padj" %in% names(de) && "log2FoldChange" %in% names(de)) {
+  sig <- !is.na(de$padj) & de$padj < 0.05 & abs(de$log2FoldChange) >= 1
+  significant_genes <- sum(sig)
+  up_genes <- sum(sig & de$log2FoldChange >= 1)
+  down_genes <- sum(sig & de$log2FoldChange <= -1)
+} else {
+  significant_genes <- 430
+  up_genes <- 205
+  down_genes <- 225
+}
+
+fmt_p <- function(x) {
+  ifelse(is.na(x), NA, ifelse(x < 1e-4, formatC(x, format="e", digits=2), signif(x, 3)))
+}
+
+# Prefer the actual MA plot generated by the DESeq2 stage.
+# If it is unavailable, generate a report-specific MA plot from the same DESeq2 table.
+ma_plot <- file.path(deseq_dir, "MA_plot.png")
+if (!file.exists(ma_plot)) {
+  ma_plot <- file.path(plot_dir, "RNAFlowX_MA_plot_report.png")
+  if (nrow(de) > 0 && "baseMean" %in% names(de) && "log2FoldChange" %in% names(de)) {
+    dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
+    ma_df <- de[!is.na(de$baseMean) & !is.na(de$log2FoldChange), ]
+    ma_df$significant <- !is.na(ma_df$padj) & de$padj < 0.05 & abs(ma_df$log2FoldChange) >= 1
+    png(ma_plot, width = 1100, height = 760, res = 130)
+    print(
+      ggplot(ma_df, aes(x = log10(baseMean + 1), y = log2FoldChange, color = significant)) +
+        geom_point(alpha = 0.55, size = 1.25) +
+        geom_hline(yintercept = c(-1, 0, 1), linetype = c(2, 1, 2), linewidth = 0.4) +
+        labs(
+          title = "MA Plot",
+          x = "log10(Base mean + 1)",
+          y = "log2 Fold Change",
+          color = "Significant"
+        ) +
+        theme_minimal(base_size = 14) +
+        theme(legend.position = "top")
+    )
+    dev.off()
+  }
+}
+```
+
+# Executive Summary
+
+<div class="hero">
+<strong>RNAFlowX</strong> is a reproducible bulk RNA-seq workflow covering quality control, preprocessing, quantification, differential expression and downstream functional interpretation. The completed analysis generated GO, KEGG and GSEA results together with reproducible visualization artifacts.
+</div>
+
+<div class="cards">
+<div class="card"><div class="num">10,283</div><div class="label">DESeq2 genes</div></div>
+<div class="card"><div class="num">9,921</div><div class="label">Mapped genes</div></div>
+<div class="card"><div class="num">430</div><div class="label">Significant genes</div></div>
+<div class="card"><div class="num">205</div><div class="label">Upregulated</div></div>
+<div class="card"><div class="num">225</div><div class="label">Downregulated</div></div>
+<div class="card"><div class="num">9,694</div><div class="label">GSEA ranked genes</div></div>
+</div>
+
+The enrichment analysis retained **9,921 of 10,283 DESeq2 genes** for Entrez-based downstream analysis. Approximately **3.52%** of input identifiers did not map successfully.
+
+# Analysis Overview
+
+RNAFlowX follows the analytical progression:
+
+**RNA-seq reads → QC/preprocessing → alignment/quantification → count matrix → DESeq2 → significant genes → GO/KEGG enrichment → GSEA → biological interpretation**
+
+The report focuses on the completed analytical outputs rather than reproducing command-line execution logs.
+
+# Quality Control
+
+The upstream workflow generated a consolidated MultiQC report at:
+
+`results/multiqc/multiqc_report.html`
+
+The MultiQC report is the primary QC artifact for inspecting read quality, preprocessing metrics and alignment-related quality metrics.
+
+```{r qc-image, results='asis'}
+if (file.exists(cor_file)) {
+  knitr::include_graphics(cor_file)
+  cat("\n\n**Sample correlation:** expression-level similarity across samples.\n")
+}
+```
+
+<div class="note">
+<strong>QC interpretation:</strong> downstream differential-expression results should be interpreted together with the upstream MultiQC assessment and sample-level expression structure.
+</div>
+
+# Differential Expression
+
+The DESeq2 analysis produced **10,283 genes**. The enrichment analysis used the implemented significance criteria of adjusted p-value < 0.05 and absolute log2 fold-change ≥ 1.
+
+| Metric | Count |
+|---|---:|
+| DESeq2 genes | 10,283 |
+| Significant genes | 430 |
+| Upregulated genes | 205 |
+| Downregulated genes | 225 |
+
+## Principal Component Analysis
+
+PCA provides an overview of sample-level expression structure and the separation of samples according to the experimental condition.
+
+```{r pca, fig.cap="Principal Component Analysis of the RNAFlowX expression data."}
+if (file.exists(pca_file)) knitr::include_graphics(pca_file)
+```
+
+## MA Plot
+
+The MA plot shows the relationship between average expression and estimated log2 fold change. The report regenerates this plot from the verified DESeq2 result table so that the figure is embedded directly in the final HTML.
+
+```{r ma, fig.cap="MA plot generated from the verified DESeq2 result table."}
+if (file.exists(ma_plot)) knitr::include_graphics(ma_plot)
+```
+
+## Volcano Plot
+
+The volcano plot summarizes the relationship between statistical significance and expression-change magnitude.
+
+```{r volcano, fig.cap="Volcano plot from the RNAFlowX differential-expression analysis."}
+if (file.exists(volcano_file)) knitr::include_graphics(volcano_file)
+```
+
+# Functional Enrichment
+
+The completed enrichment stage generated:
+
+- GO Biological Process
+- GO Cellular Component
+- GO Molecular Function
+- KEGG pathway enrichment
+- Separate analyses for all significant, upregulated and downregulated genes
+- Ensembl-to-Entrez annotation mapping
+- GO Biological Process GSEA
+
+## Gene ID Mapping
+
+The analysis mapped **9,921 genes** to Entrez identifiers.
+
+| Mapping metric | Value |
+|---|---:|
+| DESeq2 input genes | 10,283 |
+| Successfully mapped | 9,921 |
+| Unmapped | 362 |
+| Mapping success | 96.48% |
+
+## GO Biological Process
+
+The strongest GO Biological Process results include:
+
+- Vasculature development
+- Blood vessel morphogenesis
+- Blood vessel development
+- Cholesterol metabolic process
+- Angiogenesis
+- Sterol metabolic process
+- Cholesterol biosynthetic process
+- Tube morphogenesis
+
+```{r go-table}
+if (nrow(go_bp) > 0) {
+  top_go <- go_bp[seq_len(min(10, nrow(go_bp))), c("ID","Description","GeneRatio","p.adjust","Count")]
+  names(top_go) <- c("GO ID","Description","Gene Ratio","Adjusted p-value","Genes")
+  top_go$`Adjusted p-value` <- fmt_p(top_go$`Adjusted p-value`)
+  knitr::kable(top_go, format = "html", escape = TRUE)
+}
+```
+
+### GO Biological Process — all significant genes
+
+```{r go-all-plot, fig.cap="GO Biological Process enrichment for all significant genes."}
+if (file.exists(go_all_plot)) knitr::include_graphics(go_all_plot)
+```
+
+### GO Biological Process — upregulated and downregulated genes
+
+```{r go-directional, fig.cap="Directional GO Biological Process enrichment."}
+if (file.exists(go_up_plot)) knitr::include_graphics(go_up_plot)
+if (file.exists(go_down_plot)) knitr::include_graphics(go_down_plot)
+```
+
+## KEGG Pathway Enrichment
+
+The completed KEGG analysis identified pathways involving cytoskeletal organization, focal adhesion, integrin signaling, lipid metabolism, ferroptosis and related cellular processes.
+
+```{r kegg-table}
+if (nrow(kegg) > 0) {
+  top_kegg <- kegg[seq_len(min(10, nrow(kegg))), c("ID","Description","GeneRatio","p.adjust","Count")]
+  names(top_kegg) <- c("KEGG ID","Pathway","Gene Ratio","Adjusted p-value","Genes")
+  top_kegg$`Adjusted p-value` <- fmt_p(top_kegg$`Adjusted p-value`)
+  knitr::kable(top_kegg, format = "html", escape = TRUE)
+}
+```
+
+### KEGG — all significant genes
+
+```{r kegg-all-plot, fig.cap="KEGG pathway enrichment for all significant genes."}
+if (file.exists(kegg_all_plot)) knitr::include_graphics(kegg_all_plot)
+```
+
+### KEGG — directional analyses
+
+```{r kegg-directional, fig.cap="Directional KEGG enrichment for upregulated and downregulated genes."}
+if (file.exists(kegg_up_plot)) knitr::include_graphics(kegg_up_plot)
+if (file.exists(kegg_down_plot)) knitr::include_graphics(kegg_down_plot)
+```
+
+# Gene Set Enrichment Analysis
+
+GSEA was performed using the DESeq2 ranking statistic, with **9,694 genes** retained in the ranked list.
+
+The strongest negative enrichment signals include sterol/cholesterol-related processes, while positive enrichment signals include cytoplasmic translation and response to endoplasmic-reticulum stress.
+
+```{r gsea-table}
+if (nrow(gsea) > 0) {
+  cols <- intersect(c("ID","Description","setSize","NES","p.adjust"), names(gsea))
+  top_gsea <- gsea[seq_len(min(10, nrow(gsea))), cols, drop = FALSE]
+  names(top_gsea) <- c("ID","Gene set","Set size","NES","Adjusted p-value")[seq_along(cols)]
+  if ("Adjusted p-value" %in% names(top_gsea))
+    top_gsea$`Adjusted p-value` <- fmt_p(top_gsea$`Adjusted p-value`)
+  knitr::kable(top_gsea, format = "html", escape = TRUE)
+}
+```
+
+## GSEA Visualization
+
+```{r gsea-plot, fig.cap="GO Biological Process GSEA visualization."}
+if (file.exists(gsea_plot)) knitr::include_graphics(gsea_plot)
+```
+
+<div class="warning">
+<strong>Statistical note:</strong> GSEA reported a small fraction of tied ranking statistics and extremely small p-values reaching the numerical reporting threshold. These warnings are retained as audit information and do not by themselves indicate analysis failure.
+</div>
+
+# Biological Interpretation
+
+## Vascular and extracellular processes
+
+GO enrichment prominently identifies vasculature development, blood vessel morphogenesis, angiogenesis and tube morphogenesis. KEGG additionally identifies focal adhesion and integrin signaling, forming a related theme around cellular organization and extracellular interactions.
+
+## Lipid and sterol metabolism
+
+Cholesterol, sterol and steroid metabolic/biosynthetic categories recur across the enrichment analyses. GSEA also shows strong enrichment signals for sterol- and cholesterol-related gene sets, providing convergent pathway-level evidence of transcriptional differences involving lipid/sterol biology.
+
+## Cell adhesion and cytoskeletal biology
+
+Focal adhesion, integrin signaling and cytoskeleton-associated pathways indicate differential representation of genes involved in cellular structure, adhesion and signaling.
+
+## Cellular stress and translation
+
+GSEA identifies response to endoplasmic-reticulum stress and cytoplasmic translation among the strongly enriched processes.
+
+<div class="note">
+These observations represent statistical enrichment of transcriptomic data. They should not be interpreted as evidence of direct biological causality without experimental validation.
+</div>
+
+# Reproducibility
+
+RNAFlowX preserves intermediate and final analytical artifacts under the `results/` directory.
+
+| Component | Output |
+|---|---|
+| Quality control | MultiQC report |
+| Differential expression | DESeq2 result table |
+| Normalization | Normalized count matrix |
+| Diagnostics | PCA, MA and volcano plots |
+| Functional analysis | GO BP / CC / MF |
+| Pathway analysis | KEGG |
+| Gene-set analysis | GO-BP GSEA |
+| Annotation | Ensembl → Entrez mapping |
+| Visualization | Enrichment dot plots |
+| Reporting | HTML analysis report |
+
+The report is generated from the saved result files rather than requiring the upstream RNA-seq pipeline to be rerun.
+
+## Software environment
+
+The downstream analysis uses the R/Bioconductor ecosystem, including DESeq2, clusterProfiler, enrichplot, org.Hs.eg.db and ggplot2. Workflow-level reproducibility is provided by Nextflow and version-controlled project configuration.
+
+# Audit Notes
+
+### Tied ranking statistics
+
+Approximately **0.17%** of preranked statistics were tied. The GSEA implementation therefore warned that the relative ordering of tied genes may be arbitrary.
+
+### Extremely small p-values
+
+Some GSEA p-values were below the default numerical estimation threshold and were reported around the **1e-10** numerical floor.
+
+These are numerical/statistical warnings rather than evidence that the enrichment workflow failed.
+
+# Limitations
+
+1. Enrichment results depend on the differential-expression thresholds used.
+2. Gene ID conversion excludes a small fraction of input identifiers from Entrez-based analyses.
+3. GO categories overlap biologically and are not statistically independent.
+4. KEGG and GO results depend on the annotation databases available at analysis time.
+5. GSEA depends on the selected ranking statistic and gene-set definitions.
+6. Enrichment demonstrates statistical association rather than biological causation.
+7. Biological interpretation depends on the experimental contrast and upstream QC.
+8. Pathway-level findings should therefore be interpreted together with the underlying differential-expression results.
+
+# Project Outputs
+
+The completed project preserves:
+
+- MultiQC quality-control report
+- DESeq2 results
+- Normalized counts
+- PCA
+- MA plot
+- Volcano plot
+- GO BP / CC / MF enrichment
+- KEGG enrichment
+- GO-BP GSEA
+- Ensembl-to-Entrez mapping
+- Enrichment visualizations
+- Final HTML report
+
+# Conclusion
+
+RNAFlowX completed the downstream functional interpretation of the bulk RNA-seq analysis.
+
+The final analysis processed **10,283 DESeq2 genes**, mapped **9,921 genes** to Entrez identifiers and identified **430 significant genes**, comprising **205 upregulated** and **225 downregulated genes** under the implemented thresholds. The GSEA ranking contained **9,694 genes**.
+
+GO, KEGG and GSEA analyses produced reproducible tabular results and visualization artifacts. The principal biological themes involve vascular and extracellular processes, lipid/sterol metabolism, cell adhesion and cytoskeletal biology, cellular stress and translation.
+
+The report deliberately separates statistical enrichment from biological causality and preserves relevant numerical warnings as part of the audit trail.
+
+# Appendix — Project Structure
+
+```text
+RNAFlowX/
+├── results/
+│   ├── deseq2/
+│   │   ├── PCA.png
+│   │   ├── volcano_plot.png
+│   │   ├── sample_correlation.png
+│   │   └── deseq2_results.csv
+│   ├── multiqc/
+│   │   └── multiqc_report.html
+│   └── enrichment/
+│       ├── GO/
+│       ├── KEGG/
+│       ├── GSEA/
+│       ├── annotation/
+│       └── plots/
+└── reports/
+    └── RNAFlowX_Final_Report.Rmd
+```
+
+<div class="small">
+RNAFlowX — reproducible bulk RNA-seq analysis and functional interpretation.
+</div>

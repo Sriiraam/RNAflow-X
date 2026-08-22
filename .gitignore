@@ -46,3 +46,16 @@ venv/
 *.html
 *.pdfdata/reference/tx2gene.tsv
 data/reference/tx2gene.tsv
+
+/.quarto/
+**/*.quarto_ipynb
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Quarto generated cache
+_freeze/
+
+# Local installer
+quarto-*.deb
