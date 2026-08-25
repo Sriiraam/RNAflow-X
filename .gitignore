@@ -76,3 +76,7 @@ data/reference/salmon_index_v1_backup/
 # Benchmark runtime directories
 work_benchmark/
 results_benchmark/
+
+# Allow packaged MultiQC report for Streamlit deployment
+!streamlit_app/data/reports/
+!streamlit_app/data/reports/multiqc_report.html
