@@ -1,378 +1,918 @@
 from utils.database import get_go, get_kegg
+
 import streamlit as st
 import pandas as pd
-from pathlib import Path
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+
 
 # ============================================================
 # PAGE CONFIG
 # ============================================================
+
 st.set_page_config(
     page_title="RNAFlowX | Functional Enrichment",
     layout="wide"
 )
 
-# ============================================================
-# PATHS
-# ============================================================
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
-ENRICH_DIR = PROJECT_ROOT / "results" / "enrichment"
-GO_DIR = ENRICH_DIR / "GO"
-KEGG_DIR = ENRICH_DIR / "KEGG"
-PLOT_DIR = ENRICH_DIR / "plots"
 
 # ============================================================
 # CSS
 # ============================================================
+
 st.markdown("""
 <style>
 
+.stApp{
+    background:
+        radial-gradient(circle at 8% 5%,
+        rgba(37,99,235,.045), transparent 28%),
+        #F8FAFC;
+}
+
 .enrich-hero{
-    padding:46px;
-    border-radius:26px;
-    background:linear-gradient(135deg,#062A67 0%,#0E56D8 100%);
+    padding:42px 44px;
+    border-radius:24px;
+    background:
+        linear-gradient(
+            135deg,
+            #031A46 0%,
+            #064D9E 55%,
+            #0877C9 100%
+        );
     color:white;
-    box-shadow:0 18px 36px rgba(15,74,180,.20);
-    margin-bottom:30px;
+    box-shadow:0 18px 38px rgba(15,74,180,.18);
+    margin-bottom:24px;
 }
 
 .enrich-hero h1{
-    margin:0 0 12px;
-    font-size:48px;
-    font-weight:800;
+    margin:0;
+    font-size:46px;
+    font-weight:850;
 }
 
 .enrich-hero h3{
-    margin:0 0 18px;
-    color:#75E6FF;
-    font-size:22px;
+    margin:8px 0 14px;
+    color:#5EEAD4;
+    font-size:20px;
 }
 
 .enrich-hero p{
-    max-width:900px;
+    max-width:920px;
     color:#E8F3FF;
-    font-size:16px;
-    line-height:1.8;
+    font-size:15.5px;
+    line-height:1.75;
+}
+
+.section-title{
+    margin:36px 0 17px;
+    font-size:29px;
+    font-weight:850;
+    color:#103C70;
 }
 
 .kpi{
     background:white;
+    border:1px solid #E2E8F0;
     border-radius:18px;
     padding:20px;
-    text-align:center;
-    border-top:6px solid;
-    box-shadow:0 7px 20px rgba(15,23,42,.07);
-    min-height:140px;
-}
-
-.kpi-value{
-    font-size:38px;
-    font-weight:800;
-    color:#0F172A;
+    min-height:125px;
+    box-shadow:0 6px 18px rgba(15,23,42,.055);
 }
 
 .kpi-label{
-    margin-top:8px;
-    font-size:14px;
-    font-weight:600;
+    font-size:13px;
+    font-weight:700;
     color:#64748B;
 }
 
-.section-title{
-    margin:34px 0 16px;
-    font-size:30px;
-    font-weight:800;
-    color:#153F73;
+.kpi-value{
+    font-size:31px;
+    font-weight:850;
+    margin-top:8px;
+}
+
+.kpi-note{
+    color:#94A3B8;
+    font-size:12px;
+    margin-top:7px;
 }
 
 .info-box{
     background:#EFF6FF;
     border-left:5px solid #2563EB;
-    padding:18px;
+    padding:20px 22px;
     border-radius:14px;
     color:#334155;
-    line-height:1.8;
+    line-height:1.75;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
+
 # ============================================================
 # HELPERS
 # ============================================================
-def load_csv(path):
-    if not path.exists():
-        return pd.DataFrame()
 
-    return pd.read_csv(path)
+def ratio_to_float(value):
 
+    try:
+        numerator, denominator = str(value).split("/")
+        return float(numerator) / float(denominator)
 
-def significant_count(df):
-    if df.empty or "p.adjust" not in df.columns:
-        return 0
-
-    return int((df["p.adjust"] < 0.05).sum())
+    except Exception:
+        return np.nan
 
 
-def prepare_table(df):
+def prepare_enrichment(df):
+
+    df = df.copy()
+
     if df.empty:
         return df
 
-    cols = [
-        c for c in [
-            "ID",
-            "Description",
-            "GeneRatio",
-            "BgRatio",
-            "Count",
-            "pvalue",
-            "p.adjust",
-            "qvalue"
-        ]
-        if c in df.columns
-    ]
+    for col in [
+        "pvalue",
+        "p.adjust",
+        "qvalue",
+        "Count"
+    ]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(
+                df[col],
+                errors="coerce"
+            )
 
-    return df[cols].copy()
+    if "GeneRatio" in df.columns:
+        df["GeneRatio_numeric"] = (
+            df["GeneRatio"]
+            .apply(ratio_to_float)
+        )
+
+    df["p_adjust_plot"] = (
+        df["p.adjust"]
+        .fillna(1)
+        .clip(lower=1e-300)
+    )
+
+    df["neg_log10_padj"] = (
+        -np.log10(
+            df["p_adjust_plot"]
+        )
+    )
+
+    return df
+
+
+def top_terms(df, n=15):
+
+    return (
+        df
+        .sort_values(
+            "p.adjust",
+            ascending=True
+        )
+        .head(n)
+        .copy()
+    )
 
 
 # ============================================================
 # LOAD DEFAULT DATA
-# ===========================================================
-go_bp_all = get_go("BP", "all")
-go_bp_up = get_go("BP", "up")
-go_bp_down = get_go("BP", "down")
+# ============================================================
 
-kegg_all = get_kegg("all")
-kegg_up = get_kegg("up")
-kegg_down = get_kegg("down")
+go_bp_all = prepare_enrichment(
+    get_go("BP", "all")
+)
+
+kegg_all = prepare_enrichment(
+    get_kegg("all")
+)
+
 
 # ============================================================
 # HERO
 # ============================================================
+
 st.markdown("""
 <div class="enrich-hero">
 
 <h1>Functional Enrichment Analysis</h1>
 
 <h3>
-Gene Ontology • KEGG • Biological Interpretation
+Gene Ontology • KEGG • Interactive Pathway Exploration
 </h3>
 
 <p>
 Functional enrichment converts differentially expressed genes into
-biologically interpretable pathways and processes. RNAFlowX integrates
-Gene Ontology and KEGG enrichment to identify molecular functions,
-cellular components, biological processes and signaling pathways
-associated with PFOS exposure.
+biologically interpretable processes and pathways. RNAFlowX integrates
+Gene Ontology and KEGG enrichment to identify coordinated biological
+responses associated with PFOS exposure.
 </p>
 
 </div>
 """, unsafe_allow_html=True)
 
+
 # ============================================================
-# KPI CARDS
+# KPI
 # ============================================================
+
+go_sig = go_bp_all[
+    go_bp_all["p.adjust"] < 0.05
+]
+
+kegg_sig = kegg_all[
+    kegg_all["p.adjust"] < 0.05
+]
+
 k1, k2, k3, k4 = st.columns(4)
 
-with k1:
-    st.markdown(f"""
-<div class="kpi" style="border-color:#2563EB">
-<div class="kpi-value">{significant_count(go_bp_all)}</div>
-<div class="kpi-label">GO BP Terms</div>
-</div>
-""", unsafe_allow_html=True)
+cards = [
+    (
+        k1,
+        "GO BP Terms",
+        len(go_sig),
+        "#2563EB",
+        "Adjusted p < 0.05"
+    ),
+    (
+        k2,
+        "KEGG Pathways",
+        len(kegg_sig),
+        "#16A34A",
+        "Adjusted p < 0.05"
+    ),
+    (
+        k3,
+        "Top GO Signal",
+        f"{go_sig['neg_log10_padj'].max():.1f}"
+        if not go_sig.empty else "0",
+        "#7C3AED",
+        "-log10 adjusted p"
+    ),
+    (
+        k4,
+        "Top KEGG Signal",
+        f"{kegg_sig['neg_log10_padj'].max():.1f}"
+        if not kegg_sig.empty else "0",
+        "#EA580C",
+        "-log10 adjusted p"
+    )
+]
 
-with k2:
-    st.markdown(f"""
-<div class="kpi" style="border-color:#16A34A">
-<div class="kpi-value">{significant_count(kegg_all)}</div>
-<div class="kpi-label">KEGG Pathways</div>
-</div>
-""", unsafe_allow_html=True)
+for col, label, value, color, note in cards:
 
-with k3:
-    st.markdown(f"""
-<div class="kpi" style="border-color:#7C3AED">
-<div class="kpi-value">{significant_count(go_bp_up)}</div>
-<div class="kpi-label">Upregulated GO Terms</div>
-</div>
-""", unsafe_allow_html=True)
+    with col:
 
-with k4:
-    st.markdown(f"""
-<div class="kpi" style="border-color:#EA580C">
-<div class="kpi-value">{significant_count(go_bp_down)}</div>
-<div class="kpi-label">Downregulated GO Terms</div>
+        st.markdown(
+            f"""
+<div class="kpi" style="border-top:5px solid {color};">
+<div class="kpi-label">{label}</div>
+<div class="kpi-value" style="color:{color};">{value}</div>
+<div class="kpi-note">{note}</div>
 </div>
-""", unsafe_allow_html=True)
+""",
+            unsafe_allow_html=True
+        )
+
 
 # ============================================================
-# MAIN TABS
+# EXPLORER
 # ============================================================
+
 st.markdown(
-    '<div class="section-title">🧬 Enrichment Explorer</div>',
+    '<div class="section-title">Enrichment Explorer</div>',
     unsafe_allow_html=True
 )
 
 tab_go, tab_kegg = st.tabs(
-    ["Gene Ontology", "KEGG Pathways"]
+    [
+        "Gene Ontology",
+        "KEGG Pathways"
+    ]
 )
 
+
 # ============================================================
-# GO TAB
+# GO
 # ============================================================
+
 with tab_go:
 
-    go_type = st.selectbox(
-        "Gene Ontology category",
-        [
-            "Biological Process (BP)",
-            "Molecular Function (MF)",
-            "Cellular Component (CC)"
-        ]
+    c1, c2, c3 = st.columns(
+        [1.2, 1.2, 1]
     )
 
-    regulation = st.radio(
-        "Gene set",
-        [
-            "All Significant",
-            "Upregulated",
-            "Downregulated"
-        ],
-        horizontal=True
-    )
+    with c1:
 
-    go_map = {
-        "Biological Process (BP)": "BP",
-        "Molecular Function (MF)": "MF",
-        "Cellular Component (CC)": "CC"
-    }
+        go_type = st.selectbox(
+            "Ontology",
+            [
+                "Biological Process",
+                "Molecular Function",
+                "Cellular Component"
+            ]
+        )
 
-    regulation_map = {
+    with c2:
+
+        regulation = st.selectbox(
+            "Gene set",
+            [
+                "All Significant",
+                "Upregulated",
+                "Downregulated"
+            ],
+            key="go_regulation"
+        )
+
+    with c3:
+
+        top_n = st.slider(
+            "Terms displayed",
+            min_value=5,
+            max_value=30,
+            value=15,
+            step=5
+        )
+
+
+    go_code = {
+        "Biological Process": "BP",
+        "Molecular Function": "MF",
+        "Cellular Component": "CC"
+    }[go_type]
+
+    regulation_code = {
         "All Significant": "all",
         "Upregulated": "up",
         "Downregulated": "down"
-    }
+    }[regulation]
 
-    go_code = go_map[go_type]
 
-    go_df = get_go(
-        go_code,
-        regulation_map[regulation]
+    go_df = prepare_enrichment(
+        get_go(
+            go_code,
+            regulation_code
+        )
     )
 
 
     if go_df.empty:
-        st.warning("No enrichment results available for this selection.")
+
+        st.warning(
+            "No GO enrichment results "
+            "are available for this selection."
+        )
 
     else:
-        st.markdown(
-            f"### {go_type} — {regulation}"
-        )
 
-        search = st.text_input(
-            "Search GO term",
-            placeholder="Example: vasculature development",
-            key="go_search"
-        )
+        go_sig_selected = go_df[
+            go_df["p.adjust"] < 0.05
+        ].copy()
 
-        go_table = go_df.copy()
+        if go_sig_selected.empty:
 
-        if search:
-            go_table = go_table[
-                go_table["Description"]
-                .astype(str)
-                .str.contains(
-                    search,
-                    case=False,
-                    na=False
+            st.info(
+                "No GO terms meet adjusted p < 0.05."
+            )
+
+        else:
+
+            top_go = top_terms(
+                go_sig_selected,
+                top_n
+            )
+
+
+            # ================================================
+            # DOT + BAR
+            # ================================================
+
+            st.markdown(
+                '<div class="section-title">'
+                'GO Enrichment Landscape'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            left, right = st.columns(
+                2,
+                gap="large"
+            )
+
+
+            with left:
+
+                st.markdown(
+                    "### Interactive GO Dot Plot"
                 )
+
+                go_dot = px.scatter(
+                    top_go.sort_values(
+                        "GeneRatio_numeric"
+                    ),
+
+                    x="GeneRatio_numeric",
+                    y="Description",
+
+                    size="Count",
+                    color="neg_log10_padj",
+
+                    color_continuous_scale="Turbo",
+
+                    hover_data={
+                        "GeneRatio": True,
+                        "Count": True,
+                        "p.adjust": ":.2e",
+                        "pvalue": ":.2e",
+                        "GeneRatio_numeric": False,
+                        "neg_log10_padj": ":.2f"
+                    },
+
+                    labels={
+                        "GeneRatio_numeric":
+                            "Gene Ratio",
+
+                        "neg_log10_padj":
+                            "-log10(padj)",
+
+                        "Description":
+                            ""
+                    }
+                )
+
+                go_dot.update_layout(
+                    template="plotly_white",
+                    height=560,
+                    margin=dict(
+                        l=10,
+                        r=10,
+                        t=20,
+                        b=20
+                    )
+                )
+
+                st.plotly_chart(
+                    go_dot,
+                    width="stretch"
+                )
+
+
+            with right:
+
+                st.markdown(
+                    "### Ranked Biological Processes"
+                )
+
+                go_bar = px.bar(
+                    top_go.sort_values(
+                        "neg_log10_padj"
+                    ),
+
+                    x="neg_log10_padj",
+                    y="Description",
+
+                    orientation="h",
+
+                    color="GeneRatio_numeric",
+
+                    color_continuous_scale="Viridis",
+
+                    hover_data={
+                        "Count": True,
+                        "GeneRatio": True,
+                        "p.adjust": ":.2e"
+                    },
+
+                    labels={
+                        "neg_log10_padj":
+                            "-log10 adjusted p-value",
+
+                        "GeneRatio_numeric":
+                            "Gene Ratio",
+
+                        "Description":
+                            ""
+                    }
+                )
+
+                go_bar.update_layout(
+                    template="plotly_white",
+                    height=560,
+                    margin=dict(
+                        l=10,
+                        r=10,
+                        t=20,
+                        b=20
+                    )
+                )
+
+                st.plotly_chart(
+                    go_bar,
+                    width="stretch"
+                )
+
+
+            # ================================================
+            # JOINT STYLE
+            # ================================================
+
+            st.markdown(
+                '<div class="section-title">'
+                'Gene Ratio & Significance Relationship'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            joint_fig = px.scatter(
+            go_sig_selected,
+
+            x="GeneRatio_numeric",
+            y="neg_log10_padj",
+
+            size="Count",
+
+            color="neg_log10_padj",
+
+            color_continuous_scale="Plasma",
+
+            hover_name="Description",
+
+            hover_data={
+            "GeneRatio": True,
+            "Count": True,
+            "p.adjust": ":.2e",
+            "GeneRatio_numeric": False,
+            "neg_log10_padj": ":.2f"
+            },
+
+            labels={
+            "GeneRatio_numeric":
+            "Gene Ratio",
+
+            "neg_log10_padj":
+            "-log10 adjusted p-value"
+            }
+            )
+
+            joint_fig.update_traces(
+            marker=dict(
+            opacity=0.78,
+            line=dict(
+            width=0.7,
+            color="white"
+            )
+            )
+            )
+
+            joint_fig.update_layout(
+            template="plotly_white",
+            height=540,
+            margin=dict(
+            l=25,
+            r=20,
+            t=20,
+            b=25
+            ),
+            coloraxis_colorbar=dict(
+            title="-log10(padj)"
+            )
+            )
+
+            st.plotly_chart(
+            joint_fig,
+            width="stretch"
+            )
+
+
+            # ================================================
+            # TABLE
+            # ================================================
+
+            st.markdown(
+                '<div class="section-title">'
+                'GO Term Explorer'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            search = st.text_input(
+                "Search GO term",
+                placeholder="Example: blood vessel development"
+            )
+
+            display_go = (
+                go_sig_selected.copy()
+            )
+
+            if search:
+
+                display_go = display_go[
+                    display_go["Description"]
+                    .astype(str)
+                    .str.contains(
+                        search,
+                        case=False,
+                        na=False
+                    )
+                ]
+
+            display_go = (
+                display_go
+                .sort_values(
+                    "p.adjust"
+                )
+            )
+
+            columns = [
+                "ID",
+                "Description",
+                "GeneRatio",
+                "BgRatio",
+                "Count",
+                "pvalue",
+                "p.adjust",
+                "qvalue"
             ]
 
-        go_table = go_table.sort_values(
-            "p.adjust",
-            ascending=True
-        )
+            st.dataframe(
+                display_go[
+                    [
+                        c for c in columns
+                        if c in display_go.columns
+                    ]
+                ],
+                width="stretch",
+                hide_index=True,
+                height=430,
 
-        display_go = prepare_table(go_table)
+                column_config={
+                    "pvalue":
+                        st.column_config.NumberColumn(
+                            format="%.2e"
+                        ),
 
-        st.dataframe(
-            display_go.style.format({
-                "pvalue": "{:.2e}",
-                "p.adjust": "{:.2e}",
-                "qvalue": "{:.2e}"
-            }),
-            width="stretch",
-            hide_index=True,
-            height=430
-        )
+                    "p.adjust":
+                        st.column_config.NumberColumn(
+                            format="%.2e"
+                        ),
 
-        st.caption(
-            f"{len(go_table)} enrichment terms displayed."
-        )
+                    "qvalue":
+                        st.column_config.NumberColumn(
+                            format="%.2e"
+                        )
+                }
+            )
+
 
 # ============================================================
-# KEGG TAB
+# KEGG
 # ============================================================
+
 with tab_kegg:
 
-    kegg_regulation = st.radio(
-        "Gene set",
-        [
-            "All Significant",
-            "Upregulated",
-            "Downregulated"
-        ],
-        horizontal=True,
-        key="kegg_regulation"
+    c1, c2 = st.columns(
+        [1.5, 1]
     )
 
-    kegg_map = {
+    with c1:
+
+        kegg_regulation = st.selectbox(
+            "Gene set",
+            [
+                "All Significant",
+                "Upregulated",
+                "Downregulated"
+            ],
+            key="kegg_reg"
+        )
+
+    with c2:
+
+        kegg_top_n = st.slider(
+            "Pathways displayed",
+            5,
+            20,
+            10,
+            key="kegg_top"
+        )
+
+
+    regulation_code = {
         "All Significant": "all",
         "Upregulated": "up",
         "Downregulated": "down"
-    }
+    }[kegg_regulation]
 
-    kegg_df = get_kegg(
-        kegg_map[kegg_regulation]
+
+    kegg_df = prepare_enrichment(
+        get_kegg(
+            regulation_code
+        )
     )
 
+
     if kegg_df.empty:
+
         st.warning(
-            "No KEGG enrichment results available for this selection."
+            "No KEGG results available."
         )
 
     else:
-        st.markdown(
-            f"### KEGG — {kegg_regulation}"
+
+        kegg_sig_selected = kegg_df[
+            kegg_df["p.adjust"] < 0.05
+        ].copy()
+
+        top_kegg = top_terms(
+            kegg_sig_selected,
+            kegg_top_n
         )
 
-        search_kegg = st.text_input(
-            "Search pathway",
-            placeholder="Example: focal adhesion",
-            key="kegg_search"
-        )
 
-        kegg_table = kegg_df.copy()
+        if top_kegg.empty:
 
-        if search_kegg:
-            kegg_table = kegg_table[
-                kegg_table["Description"]
-                .astype(str)
-                .str.contains(
-                    search_kegg,
-                    case=False,
-                    na=False
+            st.info(
+                "No KEGG pathways meet "
+                "adjusted p < 0.05."
+            )
+
+        else:
+
+            st.markdown(
+                '<div class="section-title">'
+                'KEGG Pathway Landscape'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            left, right = st.columns(
+                2,
+                gap="large"
+            )
+
+
+            with left:
+
+                kegg_dot = px.scatter(
+                    top_kegg.sort_values(
+                        "GeneRatio_numeric"
+                    ),
+
+                    x="GeneRatio_numeric",
+                    y="Description",
+
+                    size="Count",
+                    color="neg_log10_padj",
+
+                    color_continuous_scale="Turbo",
+
+                    hover_data={
+                        "GeneRatio": True,
+                        "Count": True,
+                        "p.adjust": ":.2e",
+                        "GeneRatio_numeric": False
+                    },
+
+                    labels={
+                        "GeneRatio_numeric":
+                            "Gene Ratio",
+
+                        "neg_log10_padj":
+                            "-log10(padj)",
+
+                        "Description":
+                            ""
+                    }
                 )
-            ]
 
-        kegg_table = kegg_table.sort_values(
-            "p.adjust",
-            ascending=True
-        )
+                kegg_dot.update_layout(
+                    template="plotly_white",
+                    height=520
+                )
 
-        kegg_columns = [
-            c for c in [
+                st.plotly_chart(
+                    kegg_dot,
+                    width="stretch"
+                )
+
+
+            with right:
+
+                kegg_bar = px.bar(
+                    top_kegg.sort_values(
+                        "neg_log10_padj"
+                    ),
+
+                    x="neg_log10_padj",
+                    y="Description",
+
+                    orientation="h",
+
+                    color="Count",
+
+                    color_continuous_scale="Sunset",
+
+                    hover_data={
+                        "GeneRatio": True,
+                        "p.adjust": ":.2e"
+                    },
+
+                    labels={
+                        "neg_log10_padj":
+                            "-log10 adjusted p-value",
+
+                        "Description":
+                            ""
+                    }
+                )
+
+                kegg_bar.update_layout(
+                    template="plotly_white",
+                    height=520
+                )
+
+                st.plotly_chart(
+                    kegg_bar,
+                    width="stretch"
+                )
+
+
+            # Histogram
+            st.markdown(
+                '<div class="section-title">'
+                'KEGG Significance Distribution'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            hist_fig = px.histogram(
+                kegg_sig_selected,
+
+                x="neg_log10_padj",
+
+                nbins=12,
+
+                color_discrete_sequence=[
+                    "#7C3AED"
+                ],
+
+                hover_data=[
+                    "Description"
+                ],
+
+                labels={
+                    "neg_log10_padj":
+                        "-log10 adjusted p-value"
+                }
+            )
+
+            hist_fig.update_layout(
+                template="plotly_white",
+                height=390,
+                yaxis_title="Number of pathways"
+            )
+
+            st.plotly_chart(
+                hist_fig,
+                width="stretch"
+            )
+
+
+            # Table
+            st.markdown(
+                '<div class="section-title">'
+                'KEGG Pathway Explorer'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            search_kegg = st.text_input(
+                "Search KEGG pathway",
+                placeholder="Example: focal adhesion"
+            )
+
+            display_kegg = (
+                kegg_sig_selected.copy()
+            )
+
+            if search_kegg:
+
+                display_kegg = display_kegg[
+                    display_kegg["Description"]
+                    .astype(str)
+                    .str.contains(
+                        search_kegg,
+                        case=False,
+                        na=False
+                    )
+                ]
+
+            columns = [
                 "ID",
                 "Description",
                 "category",
@@ -383,185 +923,113 @@ with tab_kegg:
                 "p.adjust",
                 "qvalue"
             ]
-            if c in kegg_table.columns
-        ]
 
-        display_kegg = kegg_table[
-            kegg_columns
-        ].copy()
+            st.dataframe(
+                display_kegg[
+                    [
+                        c for c in columns
+                        if c in display_kegg.columns
+                    ]
+                ].sort_values(
+                    "p.adjust"
+                ),
 
-        st.dataframe(
-            display_kegg.style.format({
-                "pvalue": "{:.2e}",
-                "p.adjust": "{:.2e}",
-                "qvalue": "{:.2e}"
-            }),
-            width="stretch",
-            hide_index=True,
-            height=430
-        )
+                width="stretch",
+                hide_index=True,
+                height=430,
 
-        st.caption(
-            f"{len(kegg_table)} KEGG pathways displayed."
-        )
+                column_config={
+                    "pvalue":
+                        st.column_config.NumberColumn(
+                            format="%.2e"
+                        ),
+
+                    "p.adjust":
+                        st.column_config.NumberColumn(
+                            format="%.2e"
+                        ),
+
+                    "qvalue":
+                        st.column_config.NumberColumn(
+                            format="%.2e"
+                        )
+                }
+            )
+
 
 # ============================================================
-# DOTPLOTS
+# INTERPRETATION
 # ============================================================
+
 st.markdown(
-    '<div class="section-title">📊 Enrichment Visualizations</div>',
+    '<div class="section-title">'
+    'Biological Interpretation'
+    '</div>',
     unsafe_allow_html=True
 )
 
-plot_left, plot_right = st.columns(
-    2,
-    gap="large"
-)
+if not go_sig.empty:
 
-with plot_left:
-
-    st.markdown("### GO Biological Process")
-
-    go_plot = (
-        PLOT_DIR
-        / "GO_BP_all_significant_dotplot.png"
+    strongest_go = (
+        go_sig
+        .sort_values("p.adjust")
+        .iloc[0]
     )
 
-    if go_plot.exists():
-        st.image(
-            str(go_plot),
-            width="stretch"
-        )
+    go_text = strongest_go[
+        "Description"
+    ]
 
-    else:
-        st.warning(
-            "GO BP dotplot not found."
-        )
+else:
+    go_text = "No significant GO process"
 
-with plot_right:
 
-    st.markdown("### KEGG Pathways")
+if not kegg_sig.empty:
 
-    kegg_plot = (
-        PLOT_DIR
-        / "KEGG_all_significant_dotplot.png"
+    strongest_kegg = (
+        kegg_sig
+        .sort_values("p.adjust")
+        .iloc[0]
     )
 
-    if kegg_plot.exists():
-        st.image(
-            str(kegg_plot),
-            width="stretch"
-        )
+    kegg_text = strongest_kegg[
+        "Description"
+    ]
 
-    else:
-        st.warning(
-            "KEGG dotplot not found."
-        )
+else:
+    kegg_text = "No significant KEGG pathway"
 
-# ============================================================
-# TOP BIOLOGICAL SIGNALS
-# ============================================================
+
 st.markdown(
-    '<div class="section-title">🏆 Strongest Enrichment Signals</div>',
-    unsafe_allow_html=True
-)
-
-left, right = st.columns(
-    2,
-    gap="large"
-)
-
-with left:
-
-    st.markdown("### Top GO Biological Processes")
-
-    if not go_bp_all.empty:
-
-        top_go = (
-            go_bp_all
-            .sort_values(
-                "p.adjust",
-                ascending=True
-            )
-            .head(10)
-        )
-
-        st.dataframe(
-            top_go[
-                [
-                    "Description",
-                    "Count",
-                    "p.adjust"
-                ]
-            ].style.format({
-                "p.adjust": "{:.2e}"
-            }),
-            width="stretch",
-            hide_index=True
-        )
-
-with right:
-
-    st.markdown("### Top KEGG Pathways")
-
-    if not kegg_all.empty:
-
-        top_kegg = (
-            kegg_all
-            .sort_values(
-                "p.adjust",
-                ascending=True
-            )
-            .head(10)
-        )
-
-        st.dataframe(
-            top_kegg[
-                [
-                    "Description",
-                    "Count",
-                    "p.adjust"
-                ]
-            ].style.format({
-                "p.adjust": "{:.2e}"
-            }),
-            width="stretch",
-            hide_index=True
-        )
-
-# ============================================================
-# BIOLOGICAL SUMMARY
-# ============================================================
-st.markdown(
-    '<div class="section-title">🔬 Biological Interpretation</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown("""
+    f"""
 <div class="info-box">
 
-<strong>Functional interpretation of the RNAFlowX results</strong><br><br>
+<strong>Strongest GO Biological Process:</strong>
+{go_text}
 
-The enrichment results indicate coordinated transcriptional changes
-across multiple biological systems rather than isolated changes in
-individual genes.
+<br><br>
 
-GO Biological Process enrichment highlights processes associated with
-vascular development, extracellular stimulus response and cellular
-stress responses.
+<strong>Strongest KEGG pathway:</strong>
+{kegg_text}
 
-KEGG enrichment provides pathway-level context, including signaling,
-cellular organization and stress-associated pathways.
+<br><br>
 
-These results complement the differential-expression analysis by
-connecting individual DEGs to broader biological mechanisms.
+Gene Ontology identifies enriched biological functions,
+whereas KEGG places differentially expressed genes into
+curated molecular and signaling pathways. GeneRatio,
+gene count and multiple-testing-adjusted significance
+should be interpreted together rather than relying on
+p-values alone.
 
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True
+)
+
 
 st.write("")
 
 st.caption(
-    "Functional enrichment: clusterProfiler • "
+    "Functional enrichment source: clusterProfiler • "
     "Significance criterion: adjusted p-value < 0.05"
 )

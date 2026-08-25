@@ -1,0 +1,14 @@
+RNAFlowX DESeq2 SUMMARY
+========================
+Genes before filtering: 82323
+Genes after filtering: 10254
+Samples: 4
+Reference: control
+Comparison: pfos50
+Significant genes: 435
+
+Samples:
+control_rep1, control_rep2, pfos50_rep1, pfos50_rep2
+
+Conditions:
+control, pfos50

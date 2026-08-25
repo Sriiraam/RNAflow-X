@@ -1,0 +1,13 @@
+RNAFlowX TXIMPORT SUMMARY
+==========================
+Samples: 4
+Genes: 82323
+tx2gene mappings: 670670
+Counts method: Salmon NumReads
+Inferential replicates: dropped
+
+Samples:
+control_rep1, control_rep2, pfos50_rep1, pfos50_rep2
+
+Conditions:
+control, pfos50
