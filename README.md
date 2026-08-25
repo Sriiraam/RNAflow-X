@@ -6,6 +6,12 @@ RNAFlowX is a modular bulk RNA-sequencing analysis platform built with **Nextflo
 
 It combines bioinformatics analysis with reproducible workflow engineering, containerization, automated testing, CI/CD, execution monitoring, benchmarking, scientific reporting, and an interactive Streamlit dashboard.
 
+## Live Interactive Dashboard
+
+[Open RNAFlowX Dashboard](https://rnaflow-x.streamlit.app/)
+
+Explore Quality Control, Differential Expression, Functional Enrichment, GSEA, and downloadable pipeline outputs directly  the browser.
+
 ---
 
 ## Overview
@@ -580,18 +586,24 @@ Generated database files are excluded from Git version control.
 
 ## Interactive Streamlit Dashboard
 
-RNAFlowX includes a multi-page Streamlit interface for exploring pipeline outputs.
+RNAFlowX includes a deployed multi-page Streamlit dashboard.
 
-Dashboard areas include:
+### Live Application
 
-1. Project overview
-2. Quality control
-3. Differential expression
-4. Functional enrichment
-5. GSEA
-6. Downloads and reports
+[Open RNAFlowX Dashboard](https://rnaflow-x.streamlit.app/)
 
-Run the dashboard with:
+Dashboard pages:
+
+- Project Overview
+- Quality Control
+- Differential Expression
+- Functional Enrichment
+- GSEA
+- Downloads & Reports
+
+The dashboard includes interactive Plotly visualizations, searchable result tables, threshold controls, pathway exploration, and downloadable analysis outputs.
+
+### Run Locally
 
 ```bash
 streamlit run streamlit_app/app.py
