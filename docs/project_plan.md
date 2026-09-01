@@ -1,113 +1,131 @@
-# RNAflow-X Project Plan
+# RNAFlowX Project Plan and Implementation Status
 
 ## 1. Project Overview
 
-RNAflow-X is a reproducible, containerized Bulk RNA-seq analysis workflow designed to demonstrate production-oriented bioinformatics workflow engineering using a resource-constrained execution environment.
+RNAFlowX is a reproducible and containerized bulk RNA-seq analysis and workflow-engineering platform built with Nextflow DSL2.
 
-The project focuses on building a complete end-to-end RNA-seq workflow rather than demonstrating only individual bioinformatics tools.
+The project was designed to demonstrate an end-to-end production-oriented bioinformatics workflow under resource-constrained local execution while remaining portable to additional execution environments.
 
-The workflow will integrate:
+## 2. Core Analysis Workflow
 
-- Nextflow DSL2
-- Salmon
-- FastQC
-- FastP
-- R
-- DESeq2
-- Python
-- Docker
-- Git/GitHub
-- Structured execution logging
-- Benchmarking
-- Metadata and provenance tracking
-- Automated reporting
-- Reproducible configuration
+The implemented workflow supports:
 
-## 2. Project Objective
+1. Validated paired-end FASTQ input through a samplesheet.
+2. Raw-read quality control with FastQC.
+3. Adapter trimming and quality filtering with fastp.
+4. Post-trimming quality control.
+5. Transcript-level quantification with Salmon.
+6. Transcript-to-gene aggregation with tximport.
+7. Differential expression analysis with DESeq2.
+8. Functional enrichment analysis.
+9. GO, KEGG, and GSEA downstream analysis.
+10. Analytical visualization and scientific reporting.
 
-The primary objective is to develop a professional Bulk RNA-seq workflow capable of:
+## 3. Workflow Engineering
 
-1. Accepting paired-end FASTQ input through a validated samplesheet.
-2. Performing raw-read quality control.
-3. Performing adapter and quality trimming.
-4. Performing transcript-level quantification using Salmon.
-5. Generating gene-level abundance estimates.
-6. Performing differential expression analysis using DESeq2.
-7. Producing publication-style analytical visualizations.
-8. Generating execution and performance metrics.
-9. Capturing software, parameter, input and reference provenance.
-10. Producing a reproducible final analysis report.
+RNAFlowX includes:
 
-## 3. Resource Constraints
+- Nextflow DSL2 workflow orchestration
+- Modular workflow organization
+- Explicit configuration hierarchy
+- Docker containerization
+- Local execution profile
+- SLURM execution profile
+- Azure execution configuration
+- Kubernetes demonstration configuration
+- Git/GitHub version control
+- Automated CI/testing
+- pytest project validation
+- Nextflow execution reports
+- Timeline, trace, and DAG generation
+- Benchmarking utilities
+- Software and parameter provenance
+- Reproducibility documentation
 
-The workflow is intentionally designed to run on a local machine with approximately:
+## 4. Data and Reporting Layer
+
+The completed project additionally includes:
+
+- SQLite-based structured result storage
+- Interactive Streamlit dashboard
+- Differential-expression visualization
+- Functional-enrichment visualization
+- GSEA visualization
+- Downloadable analytical outputs
+- R Markdown reporting
+- Quarto publication-style reporting
+- CITATION.cff project citation metadata
+
+## 5. Resource-Constrained Design
+
+The primary development environment was a local Linux/WSL system with approximately:
 
 - 8 GB total RAM
-- approximately 6 GB available RAM during normal operation
+- approximately 6 GB normally available RAM
 - approximately 1 TB storage
-- no dependency on paid cloud infrastructure
+- no dependency on paid cloud compute
 
-The project therefore deliberately avoids:
+To support this environment, the workflow uses:
 
-- Full GRCh38 genome indexing
-- STAR genome indexing
-- Large cloud compute instances
-- Large-scale datasets
-- Unnecessary intermediate files
+- Salmon rather than genome-scale STAR alignment
+- Conservative process resource limits
+- Limited process concurrency
+- A small four-sample paired-end dataset
+- Avoidance of unnecessary large intermediate files
 
-The target dataset is limited to four paired-end RNA-seq samples with approximately 308.36 MB of compressed sequencing data.
+The primary dataset contains four paired-end RNA-seq samples with approximately 308.36 MB of compressed sequencing data.
 
-## 4. Frozen Technical Decisions
+## 6. Frozen Technical Decisions
 
-| Component | Decision |
+| Component | Implementation |
 |---|---|
 | Organism | Homo sapiens |
 | Genome assembly | GRCh38.p14 |
-| Annotation release | GENCODE v50 |
+| Annotation | GENCODE v50 |
 | Transcript reference | GENCODE v50 transcript FASTA |
 | Gene annotation | GENCODE v50 basic annotation GFF3 |
 | Quantification | Salmon |
+| Gene aggregation | tximport |
 | Differential expression | DESeq2 |
+| Functional analysis | GO / KEGG / GSEA |
 | Workflow engine | Nextflow DSL2 |
 | Containerization | Docker |
-| Primary execution environment | Local Linux/WSL |
-| Cloud execution | Not required |
+| Primary execution | Local Linux/WSL |
+| Additional execution configs | SLURM / Azure / Kubernetes demo |
 | Samples | 4 |
 | Experimental design | 2 control + 2 treatment |
 | Input size | ~308.36 MB compressed |
-| Reporting | HTML + graphical outputs |
-| Benchmarking | Required |
-| Observability | Required |
-| Provenance | Required |
+| Reporting | R Markdown / Quarto / HTML |
+| Interactive presentation | Streamlit |
+| Structured data storage | SQLite |
+| Testing | pytest + CI |
+| Benchmarking | Implemented |
+| Observability | Nextflow report / timeline / trace / DAG |
+| Provenance | Implemented |
 
-## 5. Design Philosophy
+## 7. Design Principles
 
-The project prioritizes:
+RNAFlowX prioritizes:
 
 - Reproducibility
 - Modularity
 - Traceability
 - Resource efficiency
+- Portability
 - Version control
 - Containerized execution
 - Explicit configuration
-- Automated reporting
+- Automated testing
+- Scientific reporting
+- Execution observability
 - Measurable performance
 
-The workflow should remain understandable to another bioinformatician without requiring knowledge of the original development environment.
+## 8. Completion Status
 
-## 6. Success Criteria
+The planned RNAFlowX workflow has been implemented.
 
-RNAflow-X will be considered complete when:
+Core analytical objectives were completed, including QC, preprocessing, quantification, gene-level aggregation, differential expression, downstream functional analysis, visualization, and reporting.
 
-- The pipeline executes successfully from a clean environment.
-- All samples pass through the automated workflow.
-- QC outputs are generated.
-- Salmon quantification completes successfully.
-- Differential expression analysis completes successfully.
-- Benchmark metrics are captured.
-- Nextflow execution reports are generated.
-- Software and parameter provenance is recorded.
-- A final analytical report is generated.
-- The repository can be reproduced from the documented instructions.
-- The workflow is version-controlled through Git.
+The project was also extended beyond the original scope with CI/testing, multiple execution configurations, SQLite integration, an interactive Streamlit dashboard, publication-style reporting, Kubernetes demonstration configuration, and project citation metadata.
+
+RNAFlowX therefore represents both a bulk RNA-seq analysis workflow and a portfolio demonstration of reproducible bioinformatics workflow engineering.

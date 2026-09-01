@@ -2,6 +2,18 @@
 
 ## Reproducible Bulk RNA-seq Analysis & Workflow Engineering Platform
 
+[![Nextflow](https://img.shields.io/badge/Nextflow-DSL2-23aa62?logo=nextflow)](https://www.nextflow.io/)
+[![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![R](https://img.shields.io/badge/R-Bioconductor-276DC3?logo=r&logoColor=white)](https://www.bioconductor.org/)
+[![DESeq2](https://img.shields.io/badge/DESeq2-Differential_Expression-198CE7)](https://bioconductor.org/packages/DESeq2/)
+[![Salmon](https://img.shields.io/badge/Salmon-Quantification-EF7B45)](https://combine-lab.github.io/salmon/)
+[![MultiQC](https://img.shields.io/badge/MultiQC-QC_Reporting-4C72B0)](https://multiqc.info/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Live_Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://rnaflow-x.streamlit.app/)
+[![CI](https://github.com/Sriiraam/RNAflow-X/actions/workflows/ci.yml/badge.svg)](https://github.com/Sriiraam/RNAflow-X/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/Sriiraam/RNAflow-X)](LICENSE)
+
+
 RNAFlowX is a modular bulk RNA-sequencing analysis platform built with **Nextflow DSL2**.
 
 It combines bioinformatics analysis with reproducible workflow engineering, containerization, automated testing, CI/CD, execution monitoring, benchmarking, scientific reporting, and an interactive Streamlit dashboard.

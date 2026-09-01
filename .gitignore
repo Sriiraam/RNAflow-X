@@ -60,10 +60,6 @@ _freeze/
 quarto-*.deb
 
 # RNAFlowX generated database
-database/*.db
-database/*.db-journal
-database/*.db-wal
-database/*.db-shm
 
 # Python cache
 
@@ -80,3 +76,10 @@ results_benchmark/
 # Allow packaged MultiQC report for Streamlit deployment
 !streamlit_app/data/reports/
 !streamlit_app/data/reports/multiqc_report.html
+
+# RNAFlowX generated SQLite database
+database/*.db
+database/*.db-journal
+database/*.db-wal
+database/*.db-shm
+.pytest_cache/
