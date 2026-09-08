@@ -105,7 +105,6 @@ GO, KEGG, and GSEA are currently implemented through the downstream R analysis l
 - Docker execution profile
 - SLURM/HPC-ready profile
 - Azure Batch-ready configuration
-- Kubernetes container validation
 - GitHub Actions CI/CD
 - Automated pytest validation
 - Execution tracing and monitoring
@@ -174,7 +173,6 @@ See [`docs/dataset.md`](docs/dataset.md) for complete dataset documentation.
 | Containers | Docker |
 | HPC configuration | SLURM |
 | Cloud-ready configuration | Azure Batch |
-| Container orchestration demo | Kubernetes / kind |
 | CI/CD | GitHub Actions |
 | Testing | pytest |
 | Version control | Git / GitHub |
@@ -218,9 +216,6 @@ RNAFlowX/
 │
 ├── containers/
 │   └── Dockerfile
-│
-├── kubernetes/
-│   └── rnaflowx-demo.yaml
 │
 ├── scripts/
 │   ├── build_database.py
@@ -385,33 +380,6 @@ The container was validated through:
 - successful Docker build
 - end-to-end Docker workflow execution
 - GitHub Actions Docker build validation
-- local Kubernetes container execution
-
----
-
-## Kubernetes Validation
-
-RNAFlowX includes a lightweight Kubernetes demonstration:
-
-```text
-kubernetes/rnaflowx-demo.yaml
-```
-
-The RNAFlowX Docker image was loaded into a local **kind** Kubernetes cluster and successfully executed.
-
-Validated software included:
-
-```text
-FastQC
-FastP
-Salmon
-MultiQC
-R
-```
-
-This demonstrates container portability.
-
-It should not be interpreted as a production Kubernetes deployment or large-scale Kubernetes benchmark.
 
 ---
 
@@ -731,7 +699,6 @@ RNAFlowX uses several controls to improve computational reproducibility:
 - [x] End-to-end Docker execution
 - [x] SLURM/HPC configuration
 - [x] Azure Batch-ready configuration
-- [x] Kubernetes container validation
 - [x] GitHub Actions CI/CD
 - [x] Automated pytest validation
 - [x] Execution monitoring

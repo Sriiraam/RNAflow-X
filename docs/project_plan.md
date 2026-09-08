@@ -32,7 +32,6 @@ RNAFlowX includes:
 - Local execution profile
 - SLURM execution profile
 - Azure execution configuration
-- Kubernetes demonstration configuration
 - Git/GitHub version control
 - Automated CI/testing
 - pytest project validation
@@ -91,7 +90,7 @@ The primary dataset contains four paired-end RNA-seq samples with approximately 
 | Workflow engine | Nextflow DSL2 |
 | Containerization | Docker |
 | Primary execution | Local Linux/WSL |
-| Additional execution configs | SLURM / Azure / Kubernetes demo |
+| Additional execution configs | SLURM / Azure |
 | Samples | 4 |
 | Experimental design | 2 control + 2 treatment |
 | Input size | ~308.36 MB compressed |
@@ -126,6 +125,5 @@ The planned RNAFlowX workflow has been implemented.
 
 Core analytical objectives were completed, including QC, preprocessing, quantification, gene-level aggregation, differential expression, downstream functional analysis, visualization, and reporting.
 
-The project was also extended beyond the original scope with CI/testing, multiple execution configurations, SQLite integration, an interactive Streamlit dashboard, publication-style reporting, Kubernetes demonstration configuration, and project citation metadata.
 
 RNAFlowX therefore represents both a bulk RNA-seq analysis workflow and a portfolio demonstration of reproducible bioinformatics workflow engineering.

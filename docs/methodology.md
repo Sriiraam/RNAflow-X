@@ -104,7 +104,6 @@ RNAFlowX supports:
 - SLURM/HPC-ready configuration
 - Azure Batch-ready configuration
 
-Container portability has additionally been demonstrated using a local Kubernetes/kind environment.
 
 ## 10. Reproducibility
 
