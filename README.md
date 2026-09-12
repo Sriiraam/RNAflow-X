@@ -22,7 +22,7 @@ It combines bioinformatics analysis with reproducible workflow engineering, cont
 
 [Open RNAFlowX Dashboard](https://rnaflow-x.streamlit.app/)
 
-Explore Quality Control, Differential Expression, Functional Enrichment, GSEA, and downloadable pipeline outputs directly  the browser.
+Explore Quality Control, Differential Expression, Functional Enrichment, GSEA, and downloadable pipeline outputs directly in the browser.
 
 ---
 
@@ -65,7 +65,7 @@ Reports + SQLite + Streamlit Dashboard
 
 The core sequencing workflow is orchestrated with Nextflow DSL2.
 
-GO, KEGG, and GSEA are currently implemented through the downstream R analysis layer and are not yet native Nextflow processes.
+GO, KEGG, and GSEA are executed as part of the Nextflow-orchestrated workflow through the R/clusterProfiler enrichment module.
 
 ---
 

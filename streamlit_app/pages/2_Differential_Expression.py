@@ -250,6 +250,9 @@ counts = pd.read_csv(
 # VALIDATE DE DATA
 # ============================================================
 
+if "gene_id" in deg.columns and "Gene" not in deg.columns:
+    deg = deg.rename(columns={"gene_id": "Gene"})
+
 required = {
     "Gene",
     "baseMean",

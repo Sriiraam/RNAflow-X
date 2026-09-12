@@ -207,7 +207,8 @@ st.sidebar.markdown("### 🛠 Tech Stack")
 st.sidebar.markdown("""
 - Nextflow DSL2
 - FastQC / MultiQC
-- STAR Aligner
+- Salmon
+- tximport
 - DESeq2
 - clusterProfiler
 - SQLite
@@ -251,7 +252,7 @@ with k1:
     st.markdown("""
 <div class="kpi" style="border-color:#2563EB">
 <div class="icon">🧬</div>
-<div class="value">10,283</div>
+<div class="value">10,254</div>
 <div class="label">Genes Analysed</div>
 </div>
 """,unsafe_allow_html=True)
