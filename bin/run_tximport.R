@@ -271,12 +271,6 @@ metadata <- read.csv(
     check.names = FALSE
 )
 
-write.csv(
-    metadata,
-    file = "metadata.csv",
-    quote = FALSE
-)
-
 if (!"sample_id" %in% colnames(metadata)) {
 
     stop(
