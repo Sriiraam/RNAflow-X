@@ -459,6 +459,9 @@ cat(
     "\n"
 )
 
+# Ensure deterministic GSEA results across identical runs.
+set.seed(42)
+
 gsea_go <- gseGO(
     geneList = gene_list,
     OrgDb = org.Hs.eg.db,
