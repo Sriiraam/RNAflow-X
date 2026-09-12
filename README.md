@@ -311,13 +311,13 @@ MultiQC consolidates QC information from the workflow into a unified report.
 
 ### 9. Functional Analysis
 
-The downstream R analysis layer performs:
+The Nextflow-orchestrated functional-enrichment stage uses R and clusterProfiler to perform:
 
 - GO Biological Process
 - GO Molecular Function
 - GO Cellular Component
 - KEGG enrichment
-- GSEA
+- Gene Set Enrichment Analysis (GSEA)
 
 ---
 
@@ -387,7 +387,7 @@ The container was validated through:
 
 RNAFlowX uses **GitHub Actions** for automated repository validation.
 
-The CI pipeline performs three primary validation jobs:
+The CI pipeline performs four primary validation jobs:
 
 ### Python Validation
 
@@ -408,7 +408,14 @@ The CI pipeline performs three primary validation jobs:
 - Docker Buildx setup
 - RNAFlowX Dockerfile build validation
 
-All three CI validation jobs have been successfully executed.
+### Miniature End-to-End Pipeline
+
+- deterministic four-sample synthetic test dataset
+- FastQC → FastP → Salmon → tximport → DESeq2 execution
+- expected-output validation
+- QC assertion checks
+
+All four CI validation jobs have been successfully executed.
 
 ---
 
@@ -560,7 +567,7 @@ The Streamlit application accesses the database through read-only query utilitie
 streamlit_app/utils/database.py
 ```
 
-Generated database files are excluded from Git version control.
+Runtime-generated database files are excluded from Git version control. A finalized read-only SQLite database is packaged under `streamlit_app/data/` for the deployed dashboard.
 
 ---
 
@@ -629,7 +636,7 @@ Major output categories include:
 results/
 ├── counting/
 ├── differential_expression/
-├── enrichment/
+├── functional_enrichment/
 ├── multiqc/
 ├── quantification/
 └── pipeline_info/
@@ -650,13 +657,18 @@ RNAFlowX uses several controls to improve computational reproducibility:
 - execution profiles
 - Docker containerization
 - reference-resource documentation
-- reference checksum tracking
+- SHA256 checksum verification for FASTQ and reference resources
+- pinned container and dependency versions
+- deterministic GSEA execution with a fixed random seed
 - deterministic output organization
-- Nextflow caching
+- Nextflow caching and resume support
 - execution tracing
 - software-version capture
-- environment provenance
+- run-level provenance including Git commit, resolved parameters and workflow metadata
+- container image and local image-ID capture
+- formal QC pass/warn thresholds
 - automated CI validation
+- miniature end-to-end CI dataset
 - automated project tests
 - reproducible benchmark scripts
 
