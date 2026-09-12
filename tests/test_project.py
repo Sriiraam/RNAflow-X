@@ -24,10 +24,13 @@ def test_required_files():
 def test_workflow_modules():
     required = [
         "modules/qc/fastqc.nf",
+        "modules/qc/qc_evaluation.nf",
+        "modules/qc/qc_summary.nf",
         "modules/preprocessing/fastp.nf",
         "modules/quantification/salmon.nf",
         "modules/counting/tximport.nf",
         "modules/differential_expression/deseq2.nf",
+        "modules/functional_enrichment/enrichment.nf",
         "modules/reporting/multiqc.nf",
     ]
 

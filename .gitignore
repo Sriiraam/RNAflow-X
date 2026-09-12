@@ -83,3 +83,7 @@ database/*.db-journal
 database/*.db-wal
 database/*.db-shm
 .pytest_cache/
+
+# Miniature CI generated data and outputs
+tests/data/ci/
+tests/results_ci/

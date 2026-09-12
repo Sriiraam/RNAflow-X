@@ -7,7 +7,7 @@ process DESEQ2 {
     publishDir "${params.outdir}/differential_expression", mode: 'copy'
 
     input:
-    path count_matrix
+    path tximport_object
     path metadata
 
     output:
@@ -21,7 +21,7 @@ process DESEQ2 {
     mkdir -p deseq2_results
 
     Rscript ${projectDir}/bin/run_deseq2.R \
-        --counts ${count_matrix} \
+        --txi ${tximport_object} \
         --metadata ${metadata} \
         --outdir deseq2_results
 

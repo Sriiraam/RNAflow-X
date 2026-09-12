@@ -19,6 +19,10 @@ option_list <- list(
         type = "character"
     ),
     make_option(
+        "--txi",
+        type = "character"
+    ),
+    make_option(
         "--summary",
         type = "character"
     )
@@ -75,12 +79,18 @@ print(sample_names)
 # 3. Check expected samples
 # ---------------------------------------------------------
 
-expected_samples <- c(
-    "control_rep1",
-    "control_rep2",
-    "pfos50_rep1",
-    "pfos50_rep2"
+metadata <- read.csv(
+    opt$metadata,
+    stringsAsFactors = FALSE
 )
+
+if (!"sample_id" %in% colnames(metadata)) {
+    stop(
+        "Metadata must contain a 'sample_id' column."
+    )
+}
+
+expected_samples <- metadata$sample_id
 
 missing_quant <- setdiff(
     expected_samples,
@@ -201,6 +211,21 @@ txi <- tximport(
 
 cat(
     "\ntximport completed successfully.\n"
+)
+
+# ---------------------------------------------------------
+# Save complete tximport object for DESeq2
+# ---------------------------------------------------------
+
+saveRDS(
+    txi,
+    file = opt$txi
+)
+
+cat(
+    "Saved tximport object:",
+    opt$txi,
+    "\n"
 )
 
 

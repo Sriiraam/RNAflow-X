@@ -13,9 +13,9 @@ suppressPackageStartupMessages({
 option_list <- list(
 
     make_option(
-        "--counts",
+        "--txi",
         type = "character",
-        help = "Input gene-level count matrix"
+        help = "Input tximport RDS object"
     ),
 
     make_option(
@@ -54,27 +54,35 @@ cat("====================================\n\n")
 
 
 # =========================================================
-# Read count matrix
+# Read tximport object
 # =========================================================
 
-cat("Reading count matrix...\n")
+cat("Reading tximport object...
+")
 
-counts <- read.csv(
-    opt$counts,
-    row.names = 1,
-    check.names = FALSE
+txi <- readRDS(
+    opt$txi
 )
 
-counts <- as.matrix(counts)
+if (
+    is.null(txi$counts) ||
+    is.null(txi$abundance) ||
+    is.null(txi$length)
+) {
+    stop(
+        "Invalid tximport object: counts, abundance or length is missing."
+    )
+}
 
-storage.mode(counts) <- "numeric"
+counts <- txi$counts
 
 cat(
-    "Count matrix:",
+    "tximport matrix:",
     nrow(counts),
     "genes x",
     ncol(counts),
-    "samples\n"
+    "samples
+"
 )
 
 
@@ -251,8 +259,8 @@ cat(
 
 cat("\nCreating DESeq2 dataset...\n")
 
-dds <- DESeqDataSetFromMatrix(
-    countData = round(counts),
+dds <- DESeqDataSetFromTximport(
+    txi = txi,
     colData = metadata,
     design = ~ condition
 )
@@ -337,13 +345,21 @@ res <- res[
 # Save complete DE results
 # =========================================================
 
-write.csv(
+res_output <- data.frame(
+    gene_id = rownames(res),
     res,
+    row.names = NULL,
+    check.names = FALSE
+)
+
+write.csv(
+    res_output,
     file = file.path(
         opt$outdir,
         "differential_expression.csv"
     ),
-    quote = FALSE
+    quote = FALSE,
+    row.names = FALSE
 )
 
 
@@ -358,13 +374,21 @@ significant <- subset(
     abs(log2FoldChange) >= 1
 )
 
-write.csv(
+significant_output <- data.frame(
+    gene_id = rownames(significant),
     significant,
+    row.names = NULL,
+    check.names = FALSE
+)
+
+write.csv(
+    significant_output,
     file = file.path(
         opt$outdir,
         "significant_genes.csv"
     ),
-    quote = FALSE
+    quote = FALSE,
+    row.names = FALSE
 )
 
 
@@ -393,10 +417,37 @@ write.csv(
 
 cat("\nGenerating PCA plot...\n")
 
-vsd <- vst(
-    dds,
-    blind = FALSE
+eligible_vst_genes <- sum(
+    rowMeans(
+        counts(
+            dds,
+            normalized = TRUE
+        )
+    ) > 5
 )
+
+if (eligible_vst_genes >= 1000) {
+
+    cat(
+        "Using fast vst() transformation.\n"
+    )
+
+    vsd <- vst(
+        dds,
+        blind = FALSE
+    )
+
+} else {
+
+    cat(
+        "Small dataset detected; using full variance stabilizing transformation.\n"
+    )
+
+    vsd <- varianceStabilizingTransformation(
+        dds,
+        blind = FALSE
+    )
+}
 
 pca_data <- plotPCA(
     vsd,

@@ -13,6 +13,7 @@ process TXIMPORT {
 
     output:
     path "count_matrix.csv", emit: counts
+    path "tximport.rds", emit: txi
     path "tximport_summary.txt", emit: summary
 
     script:
@@ -23,6 +24,7 @@ process TXIMPORT {
         --tx2gene ${tx2gene} \
         --metadata ${metadata} \
         --counts count_matrix.csv \
+        --txi tximport.rds \
         --summary tximport_summary.txt
     """
 }

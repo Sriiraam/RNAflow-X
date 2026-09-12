@@ -112,3 +112,91 @@ jobs:
           tags: rnaflowx:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+
+  # ==========================================================
+  # Miniature end-to-end RNA-seq validation
+  # ==========================================================
+  end-to-end-validation:
+    name: Miniature End-to-End Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python test dependencies
+        run: python -m pip install pandas
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Nextflow
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: "25.10.4"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and load RNAFlowX container
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: containers/Dockerfile
+          push: false
+          load: true
+          tags: rnaflowx:1.1.0
+          cache-from: type=gha
+
+      - name: Generate miniature RNA-seq dataset
+        run: |
+          python tests/generate_ci_data.py \
+            --outdir tests/data/ci
+
+      - name: Validate synthetic FASTQ files
+        run: gzip -t tests/data/ci/fastq/*.fastq.gz
+
+      - name: Build miniature Salmon index
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$PWD:/work" \
+            -w /work \
+            rnaflowx:1.1.0 \
+            salmon index \
+              -t tests/data/ci/reference/transcripts.fa \
+              -i tests/data/ci/reference/salmon_index \
+              -k 31
+
+      - name: Run miniature RNAFlowX pipeline
+        run: |
+          nextflow run main.nf \
+            -profile docker \
+            --samplesheet tests/data/ci/samplesheet.csv \
+            --metadata tests/data/ci/metadata.csv \
+            --tx2gene tests/data/ci/reference/tx2gene.tsv \
+            --salmon_index tests/data/ci/reference/salmon_index \
+            --outdir tests/results_ci \
+            --skip_enrichment true
+
+      - name: Validate expected biological outputs
+        run: python tests/check_ci_outputs.py
+
+      - name: Upload Nextflow diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rnaflowx-ci-diagnostics
+          path: |
+            .nextflow.log
+            tests/results_ci/pipeline_info/
+          if-no-files-found: ignore
