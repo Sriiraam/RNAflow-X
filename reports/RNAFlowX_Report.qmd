@@ -19,6 +19,73 @@ knitr::opts_chunk$set(
   fig.align="center",
   out.width="100%"
 )
+
+results_dir <- "../results"
+
+de <- read_csv(
+  file.path(
+    results_dir,
+    "differential_expression",
+    "deseq2_results",
+    "differential_expression.csv"
+  ),
+  show_col_types = FALSE
+)
+
+mapped <- read_csv(
+  file.path(
+    results_dir,
+    "functional_enrichment",
+    "enrichment_results",
+    "annotation",
+    "mapped_DESeq2_results.csv"
+  ),
+  show_col_types = FALSE
+)
+
+summary_lines <- readLines(
+  file.path(
+    results_dir,
+    "functional_enrichment",
+    "enrichment_results",
+    "enrichment_summary.txt"
+  )
+)
+
+get_summary_value <- function(label) {
+  hit <- grep(
+    paste0("^", label, ":"),
+    summary_lines,
+    value = TRUE
+  )
+
+  if (length(hit) == 0) {
+    return(NA_integer_)
+  }
+
+  as.integer(
+    trimws(
+      sub(
+        paste0("^", label, ":"),
+        "",
+        hit[1]
+      )
+    )
+  )
+}
+
+de_genes <- nrow(de)
+mapped_genes <- nrow(mapped)
+
+sig <- !is.na(de$padj) &
+  de$padj < 0.05 &
+  abs(de$log2FoldChange) >= 1
+
+significant_genes <- sum(sig)
+up_genes <- sum(sig & de$log2FoldChange >= 1)
+down_genes <- sum(sig & de$log2FoldChange <= -1)
+
+gsea_genes <- get_summary_value("GSEA ranked genes")
 ```
 
 <div class="hero">
@@ -29,7 +96,7 @@ knitr::opts_chunk$set(
 
 **Author:** Sriram B
 
-**Date:** 13 August 2026
+**Date:** `r format(Sys.Date(), '%d %B %Y')`
 
 Built using **Nextflow • R • DESeq2 • clusterProfiler • Quarto**
 
@@ -42,32 +109,32 @@ RNAFlowX is a fully reproducible Bulk RNA-seq workflow that performs quality con
 <div class="metrics">
 
 <div class="card">
-<h2>10,283</h2>
+<h2>`r format(de_genes, big.mark=",")`</h2>
 <p>DESeq2 Genes</p>
 </div>
 
 <div class="card">
-<h2>430</h2>
+<h2>`r format(significant_genes, big.mark=",")`</h2>
 <p>Significant DEGs</p>
 </div>
 
 <div class="card">
-<h2>9,921</h2>
+<h2>`r format(mapped_genes, big.mark=",")`</h2>
 <p>Mapped Genes</p>
 </div>
 
 <div class="card">
-<h2>205</h2>
+<h2>`r format(up_genes, big.mark=",")`</h2>
 <p>Upregulated</p>
 </div>
 
 <div class="card">
-<h2>225</h2>
+<h2>`r format(down_genes, big.mark=",")`</h2>
 <p>Downregulated</p>
 </div>
 
 <div class="card">
-<h2>9,694</h2>
+<h2>`r format(gsea_genes, big.mark=",")`</h2>
 <p>GSEA Ranked</p>
 </div>
 
@@ -92,12 +159,12 @@ The workflow generates FastQC and MultiQC reports for all sequencing libraries. 
 
 | Metric | Value |
 |---|---:|
-| Total genes | **10,283** |
-| Significant genes | **430** |
-| Upregulated | **205** |
-| Downregulated | **225** |
+| Total genes | **`r format(de_genes, big.mark=",")`** |
+| Significant genes | **`r format(significant_genes, big.mark=",")`** |
+| Upregulated | **`r format(up_genes, big.mark=",")`** |
+| Downregulated | **`r format(down_genes, big.mark=",")`** |
 
 The differential expression analysis was performed using **DESeq2** with adjusted p-value {'<'} 0.05 and |log₂FC| ≥ 1.
 :::
 
-# PCA, MA plot, Volcano and enrichment sections will be added next.
+This concise Quarto report summarizes the final RNAFlowX production analysis. Detailed visualizations and functional-enrichment interpretation are provided in the full RNAFlowX scientific report.

@@ -18,43 +18,43 @@ SOURCES = {
         ROOT / "results/differential_expression/deseq2_results/differential_expression.csv",
 
     "go_bp_all":
-        ROOT / "results/enrichment/GO/BP/all_significant.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GO/BP/all_significant.csv",
 
     "go_bp_up":
-        ROOT / "results/enrichment/GO/BP/upregulated.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GO/BP/upregulated.csv",
 
     "go_bp_down":
-        ROOT / "results/enrichment/GO/BP/downregulated.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GO/BP/downregulated.csv",
 
     "kegg_all":
-        ROOT / "results/enrichment/KEGG/all_significant.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/KEGG/all_significant.csv",
 
     "kegg_up":
-        ROOT / "results/enrichment/KEGG/upregulated.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/KEGG/upregulated.csv",
 
     "kegg_down":
-        ROOT / "results/enrichment/KEGG/downregulated.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/KEGG/downregulated.csv",
 
     "gsea_go_bp":
-        ROOT / "results/enrichment/GSEA/GO_BP_GSEA.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GSEA/GO_BP_GSEA.csv",
 
     "go_mf_all":
-        ROOT / "results/enrichment/GO/MF/all_significant.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GO/MF/all_significant.csv",
 
     "go_mf_up":
-        ROOT / "results/enrichment/GO/MF/upregulated.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GO/MF/upregulated.csv",
 
     "go_mf_down":
-        ROOT / "results/enrichment/GO/MF/downregulated.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GO/MF/downregulated.csv",
 
     "go_cc_all":
-        ROOT / "results/enrichment/GO/CC/all_significant.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GO/CC/all_significant.csv",
 
     "go_cc_up":
-        ROOT / "results/enrichment/GO/CC/upregulated.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GO/CC/upregulated.csv",
 
     "go_cc_down":
-        ROOT / "results/enrichment/GO/CC/downregulated.csv",
+        ROOT / "results/functional_enrichment/enrichment_results/GO/CC/downregulated.csv",
 }
 
 

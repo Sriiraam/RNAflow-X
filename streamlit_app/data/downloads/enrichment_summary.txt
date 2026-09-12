@@ -1,8 +1,8 @@
 RNAFlowX Functional Enrichment Summary
 =======================================
-DESeq2 genes: 10283
-Mapped genes: 9921
-Significant genes: 430
-Upregulated genes: 205
-Downregulated genes: 225
-GSEA ranked genes: 9694
+DESeq2 genes: 10254
+Mapped genes: 9991
+Significant genes: 372
+Upregulated genes: 174
+Downregulated genes: 198
+GSEA ranked genes: 9746

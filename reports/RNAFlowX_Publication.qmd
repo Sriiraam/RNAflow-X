@@ -16,11 +16,82 @@ execute:
   message: false
 ---
 
-\`\`\`{r}
+```{r}
+#| include: false
+
 library(knitr)
 library(dplyr)
 library(kableExtra)
-\`\`\`
+
+results_dir <- "../results"
+
+de <- read.csv(
+  file.path(
+    results_dir,
+    "differential_expression",
+    "deseq2_results",
+    "differential_expression.csv"
+  ),
+  stringsAsFactors = FALSE
+)
+
+mapped <- read.csv(
+  file.path(
+    results_dir,
+    "functional_enrichment",
+    "enrichment_results",
+    "annotation",
+    "mapped_DESeq2_results.csv"
+  ),
+  stringsAsFactors = FALSE
+)
+
+summary_lines <- readLines(
+  file.path(
+    results_dir,
+    "functional_enrichment",
+    "enrichment_results",
+    "enrichment_summary.txt"
+  )
+)
+
+get_summary_value <- function(label) {
+  hit <- grep(
+    paste0("^", label, ":"),
+    summary_lines,
+    value = TRUE
+  )
+
+  if (length(hit) == 0) {
+    return(NA_integer_)
+  }
+
+  as.integer(
+    trimws(
+      sub(
+        paste0("^", label, ":"),
+        "",
+        hit[1]
+      )
+    )
+  )
+}
+
+de_genes <- nrow(de)
+mapped_genes <- nrow(mapped)
+
+sig <- !is.na(de$padj) &
+  de$padj < 0.05 &
+  abs(de$log2FoldChange) >= 1
+
+significant_genes <- sum(sig)
+up_genes <- sum(sig & de$log2FoldChange >= 1)
+down_genes <- sum(sig & de$log2FoldChange <= -1)
+
+gsea_genes <- get_summary_value("GSEA ranked genes")
+
+annotation_success <- 100 * mapped_genes / de_genes
+```
 
 <div class="hero">
 
@@ -30,9 +101,9 @@ library(kableExtra)
 
 **Author:** Sriram B
 
-**Version:** 1.0.0
+**Version:** 1.1.0
 
-**Generated:** 13 August 2026
+**Generated:** `r format(Sys.Date(), '%d %B %Y')`
 
 *Nextflow • DESeq2 • Salmon • clusterProfiler • Quarto*
 
@@ -45,32 +116,32 @@ RNAFlowX is a reproducible transcriptomic analysis workflow developed for **Bulk
 <div class="metrics">
 
 <div class="card">
-<h2>10,283</h2>
+<h2>`r format(de_genes, big.mark=",")`</h2>
 <p>Total Genes</p>
 </div>
 
 <div class="card">
-<h2>445</h2>
+<h2>`r format(significant_genes, big.mark=",")`</h2>
 <p>Significant DEGs</p>
 </div>
 
 <div class="card">
-<h2>210</h2>
+<h2>`r format(up_genes, big.mark=",")`</h2>
 <p>Upregulated</p>
 </div>
 
 <div class="card">
-<h2>235</h2>
+<h2>`r format(down_genes, big.mark=",")`</h2>
 <p>Downregulated</p>
 </div>
 
 <div class="card">
-<h2>9,921</h2>
+<h2>`r format(mapped_genes, big.mark=",")`</h2>
 <p>Mapped Genes</p>
 </div>
 
 <div class="card">
-<h2>96.5%</h2>
+<h2>`r sprintf("%.1f%%", annotation_success)`</h2>
 <p>Annotation Success</p>
 </div>
 

@@ -103,12 +103,12 @@ library(knitr)
 library(ggplot2)
 
 results_dir <- "results"
-deseq_dir <- file.path(results_dir, "deseq2")
-enrich_dir <- file.path(results_dir, "enrichment")
+deseq_dir <- file.path(results_dir, "differential_expression", "deseq2_results")
+enrich_dir <- file.path(results_dir, "functional_enrichment", "enrichment_results")
 plot_dir <- file.path(enrich_dir, "plots")
 
 # Current RNAFlowX result locations
-deseq_file <- file.path(deseq_dir, "deseq2_results.csv")
+deseq_file <- file.path(deseq_dir, "differential_expression.csv")
 annot_file <- file.path(enrich_dir, "annotation", "mapped_DESeq2_results.csv")
 go_bp_file <- file.path(enrich_dir, "GO", "BP", "all_significant.csv")
 kegg_file <- file.path(enrich_dir, "KEGG", "all_significant.csv")
@@ -132,9 +132,33 @@ go_bp <- if (file.exists(go_bp_file)) read.csv(go_bp_file, stringsAsFactors = FA
 kegg <- if (file.exists(kegg_file)) read.csv(kegg_file, stringsAsFactors = FALSE) else data.frame()
 gsea <- if (file.exists(gsea_file)) read.csv(gsea_file, stringsAsFactors = FALSE) else data.frame()
 
-de_genes <- if (nrow(de) > 0) nrow(de) else 10283
-mapped_genes <- if (nrow(mapped) > 0) nrow(mapped) else 9921
-gsea_genes <- 9694
+de_genes <- nrow(de)
+mapped_genes <- nrow(mapped)
+
+summary_file <- file.path(enrich_dir, "enrichment_summary.txt")
+summary_lines <- if (file.exists(summary_file)) readLines(summary_file) else character()
+
+get_summary_value <- function(label) {
+  hit <- grep(
+    paste0("^", label, ":"),
+    summary_lines,
+    value = TRUE
+  )
+
+  if (length(hit) == 0) return(NA_integer_)
+
+  as.integer(
+    trimws(
+      sub(
+        paste0("^", label, ":"),
+        "",
+        hit[1]
+      )
+    )
+  )
+}
+
+gsea_genes <- get_summary_value("GSEA ranked genes")
 
 if (nrow(de) > 0 && "padj" %in% names(de) && "log2FoldChange" %in% names(de)) {
   sig <- !is.na(de$padj) & de$padj < 0.05 & abs(de$log2FoldChange) >= 1
@@ -142,9 +166,9 @@ if (nrow(de) > 0 && "padj" %in% names(de) && "log2FoldChange" %in% names(de)) {
   up_genes <- sum(sig & de$log2FoldChange >= 1)
   down_genes <- sum(sig & de$log2FoldChange <= -1)
 } else {
-  significant_genes <- 430
-  up_genes <- 205
-  down_genes <- 225
+  significant_genes <- NA_integer_
+  up_genes <- NA_integer_
+  down_genes <- NA_integer_
 }
 
 fmt_p <- function(x) {
@@ -186,15 +210,15 @@ if (!file.exists(ma_plot)) {
 </div>
 
 <div class="cards">
-<div class="card"><div class="num">10,283</div><div class="label">DESeq2 genes</div></div>
-<div class="card"><div class="num">9,921</div><div class="label">Mapped genes</div></div>
-<div class="card"><div class="num">430</div><div class="label">Significant genes</div></div>
-<div class="card"><div class="num">205</div><div class="label">Upregulated</div></div>
-<div class="card"><div class="num">225</div><div class="label">Downregulated</div></div>
-<div class="card"><div class="num">9,694</div><div class="label">GSEA ranked genes</div></div>
+<div class="card"><div class="num">`r format(de_genes, big.mark=",")`</div><div class="label">DESeq2 genes</div></div>
+<div class="card"><div class="num">`r format(mapped_genes, big.mark=",")`</div><div class="label">Mapped genes</div></div>
+<div class="card"><div class="num">`r format(significant_genes, big.mark=",")`</div><div class="label">Significant genes</div></div>
+<div class="card"><div class="num">`r format(up_genes, big.mark=",")`</div><div class="label">Upregulated</div></div>
+<div class="card"><div class="num">`r format(down_genes, big.mark=",")`</div><div class="label">Downregulated</div></div>
+<div class="card"><div class="num">`r format(gsea_genes, big.mark=",")`</div><div class="label">GSEA ranked genes</div></div>
 </div>
 
-The enrichment analysis retained **9,921 of 10,283 DESeq2 genes** for Entrez-based downstream analysis. Approximately **3.52%** of input identifiers did not map successfully.
+The enrichment analysis retained **`r format(mapped_genes, big.mark=",")` of `r format(de_genes, big.mark=",")` DESeq2 genes** for Entrez-based downstream analysis. Approximately **`r sprintf("%.2f", 100 * (1 - mapped_genes / de_genes))`%** of input identifiers did not map successfully.
 
 # Analysis Overview
 
@@ -225,14 +249,14 @@ if (file.exists(cor_file)) {
 
 # Differential Expression
 
-The DESeq2 analysis produced **10,283 genes**. The enrichment analysis used the implemented significance criteria of adjusted p-value < 0.05 and absolute log2 fold-change ≥ 1.
+The DESeq2 analysis produced **`r format(de_genes, big.mark=",")` genes**. The enrichment analysis used the implemented significance criteria of adjusted p-value < 0.05 and absolute log2 fold-change ≥ 1.
 
 | Metric | Count |
 |---|---:|
-| DESeq2 genes | 10,283 |
-| Significant genes | 430 |
-| Upregulated genes | 205 |
-| Downregulated genes | 225 |
+| DESeq2 genes | `r format(de_genes, big.mark=",")` |
+| Significant genes | `r format(significant_genes, big.mark=",")` |
+| Upregulated genes | `r format(up_genes, big.mark=",")` |
+| Downregulated genes | `r format(down_genes, big.mark=",")` |
 
 ## Principal Component Analysis
 
@@ -272,12 +296,12 @@ The completed enrichment stage generated:
 
 ## Gene ID Mapping
 
-The analysis mapped **9,921 genes** to Entrez identifiers.
+The analysis mapped **`r format(mapped_genes, big.mark=",")` genes** to Entrez identifiers.
 
 | Mapping metric | Value |
 |---|---:|
-| DESeq2 input genes | 10,283 |
-| Successfully mapped | 9,921 |
+| DESeq2 input genes | `r format(de_genes, big.mark=",")` |
+| Successfully mapped | `r format(mapped_genes, big.mark=",")` |
 | Unmapped | 362 |
 | Mapping success | 96.48% |
 
@@ -344,7 +368,7 @@ if (file.exists(kegg_down_plot)) knitr::include_graphics(kegg_down_plot)
 
 # Gene Set Enrichment Analysis
 
-GSEA was performed using the DESeq2 ranking statistic, with **9,694 genes** retained in the ranked list.
+GSEA was performed using the DESeq2 ranking statistic, with **`r format(gsea_genes, big.mark=",")` genes** retained in the ranked list.
 
 The strongest negative enrichment signals include sterol/cholesterol-related processes, while positive enrichment signals include cytoplasmic translation and response to endoplasmic-reticulum stress.
 
@@ -458,7 +482,7 @@ The completed project preserves:
 
 RNAFlowX completed the downstream functional interpretation of the bulk RNA-seq analysis.
 
-The final analysis processed **10,283 DESeq2 genes**, mapped **9,921 genes** to Entrez identifiers and identified **430 significant genes**, comprising **205 upregulated** and **225 downregulated genes** under the implemented thresholds. The GSEA ranking contained **9,694 genes**.
+The final analysis processed **`r format(de_genes, big.mark=",")` DESeq2 genes**, mapped **`r format(mapped_genes, big.mark=",")` genes** to Entrez identifiers and identified **`r format(significant_genes, big.mark=",")` significant genes**, comprising **`r format(up_genes, big.mark=",")` upregulated** and **`r format(down_genes, big.mark=",")` downregulated genes** under the implemented thresholds. The GSEA ranking contained **`r format(gsea_genes, big.mark=",")` genes**.
 
 GO, KEGG and GSEA analyses produced reproducible tabular results and visualization artifacts. The principal biological themes involve vascular and extracellular processes, lipid/sterol metabolism, cell adhesion and cytoskeletal biology, cellular stress and translation.
 
